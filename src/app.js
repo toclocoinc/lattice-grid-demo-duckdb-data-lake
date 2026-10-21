@@ -22,13 +22,14 @@ const el = (tag, className, text) => {
 const PAGE_SIZE = 500;
 
 export function buildApp({ root, LG, createMapView, connection, meter, duckdbVersion }) {
+  const params = new URLSearchParams(location.search);
   const built = {
     ready: false,
     grid: null,
     map: null,
     source: null,
     adapter: null,
-    city: CITIES[0],
+    city: CITIES.find((c) => c.id === params.get('city')) ?? CITIES[0],
     categories: new Set(),
     groupBy: null,
     matchCount: null,
@@ -38,7 +39,6 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     cityBytes: 0,
     duckdbVersion,
   };
-  const params = new URLSearchParams(location.search);
   let theme = params.get('theme') === 'dark' ? 'dark' : params.get('theme') === 'light' ? 'light'
     : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   document.documentElement.dataset.theme = theme;
@@ -279,6 +279,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     const inner = adapter.execute.bind(adapter);
     adapter.execute = async (query, request) => {
       const result = await inner(query, request);
+      if (source !== built.source) return result;
       if (typeof result.total === 'number' && !query.groupBy?.length) built.matchCount = result.total;
       built.plan = source.lastPlan?.() ?? null;
       renderCost();

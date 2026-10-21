@@ -11,7 +11,8 @@
 
 import { MANIFEST } from './manifest.js';
 
-export const LAKE_BASE = new URLSearchParams(location.search).get('data') === 'local'
+/* `location` is absent when Node imports this for tools/verify.mjs; the bucket is the default there. */
+export const LAKE_BASE = typeof location !== 'undefined' && new URLSearchParams(location.search).get('data') === 'local'
   ? new URL('./lake', location.href).href
   : MANIFEST.host;
 

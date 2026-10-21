@@ -1,0 +1,44 @@
+{
+ "release": "2026-09-23.1",
+ "files": 1,
+ "total": 1491,
+ "chip": 54,
+ "search": 106,
+ "categories": 290,
+ "brands": 54,
+ "firstGroups": {
+  "category": [
+   {
+    "key": "advertising_agency",
+    "n": 5
+   },
+   {
+    "key": "airport",
+    "n": 1
+   },
+   {
+    "key": "airport_shuttle",
+    "n": 2
+   }
+  ],
+  "brand": [
+   {
+    "key": "10-11",
+    "n": 1
+   },
+   {
+    "key": "66°Norður",
+    "n": 1
+   },
+   {
+    "key": "Akkúrat",
+    "n": 1
+   }
+  ]
+ },
+ "firstByName": [
+  "10-11 Austurstræti",
+  "101 Bistro",
+  "101 Down Town Guesthouse"
+ ]
+}
