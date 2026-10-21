@@ -3,3 +3,4 @@ node_modules/
 .scratch-12014/
 *.parquet
 data/lake/
+.scratch-*/

@@ -2,15 +2,15 @@
  * The page.
  *
  * The visitor picks a place and some categories. The grid is a source over
- * Overture's public Parquet; every filter, sort, group and search it applies is
- * SQL that DuckDB-Wasm runs against the bucket, and the counter beside it
- * shows what that cost in bytes, against the size of the whole dataset.
+ * country-partitioned copy of Overture's Places; every filter, sort, group and
+ * search it applies is SQL that DuckDB-Wasm runs against those files, and the
+ * cost panel shows what that touched: countries opened, bytes, row groups.
  */
 
 import { MANIFEST } from './manifest.js';
-import { LAKE_BASE } from './config.js';
+import { DATA_BASE } from './config.js';
 import { recordingConnection } from './duckdb.js';
-import { CATEGORIES, CITIES, COLUMNS, GRID_FIELDS, filesFor, filterTree, fmt, fromFor } from './places.js';
+import { CATEGORIES, CITIES, COLUMNS, GRID_FIELDS, filesFor, filterTree, fmt, fromFor, groupsFor, shortenSource } from './places.js';
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -34,6 +34,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     groupBy: null,
     matchCount: null,
     files: [],
+    groups: { total: 0, touched: 0, skipped: 0 },
     sql: [],
     lastQueryMs: null,
     cityBytes: 0,
@@ -59,8 +60,8 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
   titleRow.append(themeButton);
   header.append(titleRow);
   header.append(el('p', 'lede',
-    `Overture Maps publishes ${fmt.int(MANIFEST.totalRows)} places of interest as ${fmt.bytes(MANIFEST.totalBytes)} of public Parquet. `
-    + 'Nothing here is copied or rehosted: DuckDB, running in your browser, queries those files where they sit and reads only the byte ranges '
+    `Overture Maps publishes ${fmt.int(MANIFEST.totalRows)} places of interest. Here they sit as ${fmt.bytes(MANIFEST.totalBytes)} of Parquet, one folder per country. `
+    + 'DuckDB, running in your browser, opens only the countries your map window touches and reads only the byte ranges '
     + 'your filters need. Pick a place and a category and watch how little of the lake it takes to answer.'));
   root.append(header);
 
@@ -98,7 +99,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
   credit.append(
     'Data: ',
     Object.assign(el('a', null, 'Overture Maps Foundation'), { href: 'https://overturemaps.org/', rel: 'noopener' }),
-    ` Places, release ${MANIFEST.release}, read in place from the public bucket. Each place carries its own source licence (CDLA-Permissive-2.0, Apache-2.0 or CC0); attribution per `,
+    ` Places, release ${MANIFEST.release}, as a country-partitioned Parquet copy. Each place carries its own source licence (CDLA-Permissive-2.0, Apache-2.0 or CC0); attribution per `,
     Object.assign(el('a', null, 'docs.overturemaps.org/attribution'), { href: 'https://docs.overturemaps.org/attribution/', rel: 'noopener' }),
     '. Basemap: OpenFreeMap, © OpenMapTiles, data © OpenStreetMap contributors.',
   );
@@ -191,15 +192,16 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     const value = el('div', 'stat-value', '—');
     value.dataset.value = '';
     box.append(el('div', 'stat-label', label), value);
-    if (note) box.append(el('div', 'stat-note', note));
+    const noteBox = el('div', 'stat-note', note);
+    if (note !== undefined) box.append(noteBox);
     stats.append(box);
-    return { box, value };
+    return { box, value, note: noteBox };
   };
   const matchTile = tile('matches', 'Places match', 'inside the chosen window');
+  const partitionTile = tile('partitions', 'Countries opened', ' ');
   const fetchedTile = tile('fetched', 'Fetched from the lake');
-  const totalTile = tile('total', 'The whole dataset', `${fmt.int(MANIFEST.totalRows)} places in ${MANIFEST.files.length} files`);
+  const totalTile = tile('total', 'The whole copy', `${fmt.int(MANIFEST.totalRows)} places in ${MANIFEST.files.length} files`);
   const timeTile = tile('time', 'Last query', 'DuckDB, in your browser');
-  const filesTile = tile('files', 'Files opened', 'the rest are never touched');
   totalTile.value.textContent = fmt.bytes(MANIFEST.totalBytes);
   const meterBar = el('div', 'meter');
   meterBar.setAttribute('role', 'img');
@@ -213,13 +215,16 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
   function renderCost() {
     const share = built.cityBytes / MANIFEST.totalBytes;
     fetchedTile.value.textContent = fmt.bytes(built.cityBytes);
-    meterFill.style.width = `${Math.max(share * 100, 0.4)}%`;
+    meterFill.style.width = `${Math.min(Math.max(share * 100, 0.4), 100)}%`;
     const pct = share < 0.0001 ? '<0.01' : (share * 100).toFixed(share < 0.01 ? 2 : 1);
-    meterNote.textContent = `${pct}% of the dataset · ${fmt.int(meter.requests)} range requests`;
+    meterNote.textContent = `${pct}% of the copy · ${fmt.int(meter.requests)} range requests`;
     meterBar.setAttribute('aria-label', `${fmt.bytes(built.cityBytes)} fetched of ${fmt.bytes(MANIFEST.totalBytes)}`);
     matchTile.value.textContent = built.matchCount == null ? '—' : fmt.int(built.matchCount);
     timeTile.value.textContent = built.lastQueryMs == null ? '—' : `${fmt.int(built.lastQueryMs)} ms`;
-    filesTile.value.textContent = `${built.files.length} of ${MANIFEST.files.length}`;
+    const countries = new Set(built.files.map((f) => f.country)).size;
+    partitionTile.value.textContent = `${countries} of ${MANIFEST.countries}`;
+    partitionTile.note.textContent = `${built.files.length} file${built.files.length === 1 ? '' : 's'} · `
+      + (built.groups.total ? `${fmt.int(built.groups.skipped)} of ${fmt.int(built.groups.total)} row groups skipped` : 'nothing here to read');
   }
   meter.onChange(() => { built.cityBytes = meter.bytes; renderCost(); });
 
@@ -229,7 +234,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
       const item = el('li');
       item.append(el('span', 'q-time', `${fmt.int(entry.ms)} ms · ${fmt.int(entry.rows)} row${entry.rows === 1 ? '' : 's'}`));
       const pre = el('pre', 'q-sql');
-      pre.textContent = entry.sql.replace(/\s+/g, ' ').replace(/FROM \(SELECT .*?read_parquet\(\[.*?\]\)\)/, 'FROM places')
+      pre.textContent = shortenSource(entry.sql.replace(/\s+/g, ' '))
         + (entry.params.length ? `\n-- bound: ${JSON.stringify(entry.params, (k, v) => (typeof v === 'bigint' ? Number(v) : v))}` : '');
       item.append(pre);
       queryList.append(item);
@@ -267,6 +272,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     gridHost.textContent = '';
     mapHost.textContent = '';
     built.files = filesFor(built.city.bbox);
+    built.groups = groupsFor(built.files, built.city.bbox);
     built.matchCount = null;
     built.lastQueryMs = null;
     meter.reset();
@@ -385,6 +391,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
   built.destroy = () => { built.map?.destroy?.(); built.grid?.destroy?.(); meter.close?.(); };
   built.chooseCity = chooseCity;
   built.cities = CITIES;
-  built.lakeBase = LAKE_BASE;
+  built.dataBase = DATA_BASE;
+  built.manifest = MANIFEST;
   return built;
 }

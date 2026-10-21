@@ -13,7 +13,7 @@
  * observe its requests. The worker is therefore started from a few lines that
  * wrap XMLHttpRequest — the transport DuckDB-Wasm reads files with — and report
  * each finished request over a BroadcastChannel. This counts what DuckDB asked
- * the bucket for and what came back; it changes nothing about the reads.
+ * the CDN for and what came back; it changes nothing about the reads.
  */
 
 import { DUCKDB_MODULE, DUCKDB_VERSION } from './config.js';

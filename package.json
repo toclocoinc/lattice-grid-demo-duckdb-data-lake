@@ -11,10 +11,10 @@
     "@duckdb/node-api": "^1.5.5-r.5"
   },
   "engines": { "node": ">=22" },
-  "description": "Query the Overture Maps Places data lake in place: DuckDB-Wasm reads the public Parquet over HTTPS and Lattice Grid turns every filter into pruned byte-range reads.",
+  "description": "Query a country-partitioned Parquet copy of Overture Maps Places in place: DuckDB-Wasm reads it over HTTPS and Lattice Grid turns every filter into pruned byte-range reads.",
   "scripts": {
     "start": "node tools/serve.mjs",
-    "verify": "node tools/verify.mjs",
-    "build-manifest": "node tools/build-manifest.mjs"
+    "build-partitioned": "node tools/build-partitioned.mjs",
+    "verify": "node tools/verify.mjs"
   }
 }

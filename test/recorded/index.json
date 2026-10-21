@@ -1,181 +1,100 @@
 {
- "HEAD /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet -": {
+ "HEAD /country=IS/part-0.parquet -": {
   "status": 200,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-length": "825589"
   },
   "file": null
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=728745691-729007834": {
+ "GET /country=IS/part-0.parquet bytes=809205-825588": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "262144",
-   "content-range": "bytes 728745691-729007834/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 809205-825588/825589",
+   "content-length": "16384"
   },
-  "file": "7494aba6c3ab94ef.bin"
+  "file": "8af209059cd13da7.bin"
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=727426337-728745690": {
+ "GET /country=IS/part-0.parquet bytes=720607-809204": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "1319354",
-   "content-range": "bytes 727426337-728745690/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 720607-809204/825589",
+   "content-length": "88598"
   },
-  "file": "c5845345a4c8e4f2.bin"
+  "file": "ffbcda693f6a22c7.bin"
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610992683-611075598": {
+ "GET /country=IS/part-0.parquet bytes=4-411599": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "82916",
-   "content-range": "bytes 610992683-611075598/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 4-411599/825589",
+   "content-length": "411596"
   },
-  "file": "0bb18913865bcb88.bin"
+  "file": "f29ab8b3af348ba5.bin"
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=611158736-611223472": {
+ "GET /country=IS/part-0.parquet bytes=411600-593781": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "64737",
-   "content-range": "bytes 611158736-611223472/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 411600-593781/825589",
+   "content-length": "182182"
   },
-  "file": "91812b665929013d.bin"
+  "file": "966f6e355bf97871.bin"
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=608832068-609252127": {
+ "GET /country=IS/part-0.parquet bytes=593782-623046": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "420060",
-   "content-range": "bytes 608832068-609252127/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 593782-623046/825589",
+   "content-length": "29265"
   },
-  "file": "e902807173056f53.bin"
+  "file": "c6055c6a65b847fe.bin"
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610301378-610536806": {
+ "GET /country=IS/part-0.parquet bytes=623047-628106": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "235429",
-   "content-range": "bytes 610301378-610536806/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 623047-628106/825589",
+   "content-length": "5060"
   },
-  "file": "a97c8d7990f776fd.bin"
+  "file": "1f9c9a2de69c8b0c.bin"
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610887378-610916375": {
+ "GET /country=IS/part-0.parquet bytes=628107-639507": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "28998",
-   "content-range": "bytes 610887378-610916375/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 628107-639507/825589",
+   "content-length": "11401"
   },
-  "file": "1950dd04ebb3ecf8.bin"
+  "file": "e779243fd27bb397.bin"
  },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610155499-610162107": {
+ "GET /country=IS/part-0.parquet bytes=639508-720606": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
-   "content-length": "6609",
-   "content-range": "bytes 610155499-610162107/729007835",
    "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
+   "etag": "\"825589-1792613193325\"",
+   "content-range": "bytes 639508-720606/825589",
+   "content-length": "81099"
   },
-  "file": "41586f1493e78ba7.bin"
- },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610179041-610273015": {
-  "status": 206,
-  "headers": {
-   "content-type": "application/octet-stream",
-   "content-length": "93975",
-   "content-range": "bytes 610179041-610273015/729007835",
-   "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
-  },
-  "file": "ce729d0ae95a23af.bin"
- },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610273160-610285349": {
-  "status": 206,
-  "headers": {
-   "content-type": "application/octet-stream",
-   "content-length": "12190",
-   "content-range": "bytes 610273160-610285349/729007835",
-   "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
-  },
-  "file": "e2d66fddbb7b8573.bin"
- },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610285459-610297779": {
-  "status": 206,
-  "headers": {
-   "content-type": "application/octet-stream",
-   "content-length": "12321",
-   "content-range": "bytes 610285459-610297779/729007835",
-   "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
-  },
-  "file": "d141e790b64e337e.bin"
- },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610297887-610301015": {
-  "status": 206,
-  "headers": {
-   "content-type": "application/octet-stream",
-   "content-length": "3129",
-   "content-range": "bytes 610297887-610301015/729007835",
-   "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
-  },
-  "file": "e68d5b564d6a6d6f.bin"
- },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=610301134-610301276": {
-  "status": 206,
-  "headers": {
-   "content-type": "application/octet-stream",
-   "content-length": "143",
-   "content-range": "bytes 610301134-610301276/729007835",
-   "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
-  },
-  "file": "9174066ac7804756.bin"
- },
- "GET /release/2026-09-23.1/theme=places/type=place/part-00006-4f05dab3-5982-5cee-9cd0-714856eac08e-c000.zstd.parquet bytes=609525275-609633520": {
-  "status": 206,
-  "headers": {
-   "content-type": "application/octet-stream",
-   "content-length": "108246",
-   "content-range": "bytes 609525275-609633520/729007835",
-   "accept-ranges": "bytes",
-   "etag": "\"66f6c56063f01ee7786ad5b9f9c04e41-11\"",
-   "last-modified": "Fri, 25 Sep 2026 16:08:59 GMT"
-  },
-  "file": "2677d9b23b618c50.bin"
+  "file": "b5962d920cc3f9fd.bin"
  }
 }

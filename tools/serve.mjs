@@ -1,32 +1,37 @@
 /**
  * A static file server for looking at the demo locally, plus the `/lake/` route.
  *
- * `/lake/<path>` stands in for the Overture bucket when the page is opened with
- * `?data=local`. It has three modes:
+ * `/lake/<path>` stands in for the CDN (data.latticegrid.dev) when the page is
+ * opened with `?data=local`. It has three modes:
  *
- *   live     forwards each request, Range header included, to the public bucket.
- *            Used for development against the real data.
- *   record   live, and every response is also written to test/recorded/, keyed by
- *            path and Range. This is how the CI fixture is made.
- *   replay   answers only from test/recorded/, with no network at all. A request
+ *   local    answers from a directory made by tools/build-partitioned.mjs, with
+ *            Range support, like the CDN. Used for development and for verify.
+ *   record   local, and every response is also written to test/recorded/, keyed
+ *            by path and Range, with the directory's manifest. This is how the
+ *            CI fixture is made.
+ *   replay   answers only from test/recorded/, with no data at all. A request
  *            that was not recorded is a 404 and is listed in `/__lake`, so a
  *            change that reads different bytes shows up as a failed check.
  *
+ * In all three the page's `src/manifest.js` is answered from the manifest that
+ * matches the data being served (the directory's, or the recording's), so the
+ * page never lists files the server does not have.
+ *
  * `/__lake` serves the tally of what the page asked of `/lake/`, as JSON.
  *
- *   node tools/serve.mjs [port] [--lake=live|record|replay]
+ *   node tools/serve.mjs [port] [--lake=local|record|replay] [--dir=data/lake]
  */
 
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, open, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const RECORDED = join(root, 'test', 'recorded');
-const HOST = 'https://overturemaps-us-west-2.s3.amazonaws.com';
+export const DEFAULT_DIR = join(root, 'data', 'lake');
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -49,14 +54,46 @@ function resolvePath(urlPath) {
 const keyOf = (method, path, range) => `${method} ${path} ${range || '-'}`;
 const fileOf = (key) => `${createHash('sha1').update(key).digest('hex').slice(0, 16)}.bin`;
 
-export async function startServer(port = 0, { lake = 'replay' } = {}) {
+/** One file of the local copy, answered the way the CDN does: whole, or the Range asked for. */
+async function readLocal(dir, path, range, headOnly) {
+  const full = join(dir, normalize(decodeURIComponent(path)).replace(/^(\.\.[/\\])+/, ''));
+  if (!full.startsWith(dir)) return null;
+  let info;
+  try { info = await stat(full); } catch { return null; }
+  if (!info.isFile()) return null;
+  const headers = { 'content-type': 'application/octet-stream', 'accept-ranges': 'bytes', etag: `"${info.size}-${Math.round(info.mtimeMs)}"` };
+  const match = range && /^bytes=(\d*)-(\d*)$/.exec(range);
+  let start = 0; let end = info.size - 1; let status = 200;
+  if (match) {
+    if (match[1] === '') { start = Math.max(info.size - Number(match[2]), 0); } else { start = Number(match[1]); if (match[2] !== '') end = Math.min(Number(match[2]), info.size - 1); }
+    if (start > end) return { status: 416, headers: { 'content-range': `bytes */${info.size}` }, body: Buffer.alloc(0) };
+    status = 206;
+    headers['content-range'] = `bytes ${start}-${end}/${info.size}`;
+  }
+  headers['content-length'] = String(end - start + 1);
+  if (headOnly) return { status, headers, body: Buffer.alloc(0) };
+  const handle = await open(full);
+  try {
+    const body = Buffer.alloc(end - start + 1);
+    await handle.read(body, 0, body.length, start);
+    return { status, headers, body };
+  } finally { await handle.close(); }
+}
+
+export async function startServer(port = 0, { lake = 'replay', dir = DEFAULT_DIR } = {}) {
+  dir = resolve(dir);
   /** What the page asked of /lake/: one entry per request. */
   let log = [];
   let index = {};
   if (lake === 'replay' || lake === 'record') {
     try { index = JSON.parse(await readFile(join(RECORDED, 'index.json'), 'utf8')); } catch { index = {}; }
   }
-  if (lake === 'record') index = {};
+  if (lake === 'record') {
+    index = {};
+    await rm(RECORDED, { recursive: true, force: true });
+    await mkdir(RECORDED, { recursive: true });
+    await copyFile(join(dir, 'manifest.js'), join(RECORDED, 'manifest.js'));
+  }
 
   async function serveLake(request, response, path) {
     const range = request.headers.range || null;
@@ -76,23 +113,19 @@ export async function startServer(port = 0, { lake = 'replay' } = {}) {
       return;
     }
 
-    const headers = {};
-    if (range) headers.range = range;
-    const upstream = await fetch(`${HOST}${path}`, { method: request.method, headers });
-    const body = Buffer.from(await upstream.arrayBuffer());
-    const keep = {};
-    for (const name of ['content-type', 'content-length', 'content-range', 'accept-ranges', 'etag', 'last-modified']) {
-      const value = upstream.headers.get(name);
-      if (value) keep[name] = value;
+    const found = await readLocal(dir, path, range, request.method === 'HEAD');
+    if (!found) {
+      note(404, 0, false);
+      response.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
+      return;
     }
-    if (request.method !== 'HEAD') keep['content-length'] = String(body.length);
-    response.writeHead(upstream.status, keep).end(request.method === 'HEAD' ? undefined : body);
-    note(upstream.status, body.length, false);
-    if (lake === 'record' && upstream.status < 400) {
+    response.writeHead(found.status, found.headers).end(request.method === 'HEAD' ? undefined : found.body);
+    note(found.status, found.body.length, false);
+    if (lake === 'record' && found.status < 400) {
       await mkdir(RECORDED, { recursive: true });
-      const file = body.length && request.method !== 'HEAD' ? fileOf(key) : null;
-      if (file) await writeFile(join(RECORDED, file), body);
-      index[key] = { status: upstream.status, headers: keep, file };
+      const file = found.body.length && request.method !== 'HEAD' ? fileOf(key) : null;
+      if (file) await writeFile(join(RECORDED, file), found.body);
+      index[key] = { status: found.status, headers: found.headers, file };
       await writeFile(join(RECORDED, 'index.json'), JSON.stringify(index, null, 1));
     }
   }
@@ -109,6 +142,15 @@ export async function startServer(port = 0, { lake = 'replay' } = {}) {
       if (url.startsWith('/lake/')) {
         await serveLake(request, response, url.slice('/lake'.length).split('?')[0]);
         return;
+      }
+      if (url.split('?')[0] === '/src/manifest.js') {
+        const own = lake === 'replay' ? join(RECORDED, 'manifest.js') : join(dir, 'manifest.js');
+        const found = await stat(own).then(() => own, () => null);
+        if (found) {
+          response.writeHead(200, { 'content-type': TYPES['.js'], 'cache-control': 'no-store' });
+          createReadStream(found).pipe(response);
+          return;
+        }
       }
       if (url === '/favicon.ico') { response.writeHead(204).end(); return; }
 
@@ -141,11 +183,12 @@ export async function startServer(port = 0, { lake = 'replay' } = {}) {
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   const args = process.argv.slice(2);
-  const mode = (args.find((a) => a.startsWith('--lake=')) || '--lake=live').split('=')[1];
+  const flag = (name) => (args.find((a) => a.startsWith(`--${name}=`)) || '').split('=')[1];
+  const mode = flag('lake') || 'local';
   const wanted = Number(args.find((a) => /^\d+$/.test(a)) || 0);
-  const { port } = await startServer(wanted, { lake: mode });
+  const { port } = await startServer(wanted, { lake: mode, dir: flag('dir') || DEFAULT_DIR });
   process.stdout.write(`Serving the demo at http://localhost:${port}/\n`);
-  process.stdout.write(`The real bucket:  http://localhost:${port}/\n`);
+  process.stdout.write(`The copy on the CDN:  http://localhost:${port}/\n`);
   process.stdout.write(`Through /lake/ (${mode}): http://localhost:${port}/?data=local\n`);
   process.stdout.write('Press Control-C to stop.\n');
 }

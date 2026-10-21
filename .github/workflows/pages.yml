@@ -35,8 +35,8 @@ jobs:
         run: npm ci
 
       # Opens the page in headless Chrome and checks every figure against
-      # Node's own DuckDB. It reads the live Overture bucket when it can and
-      # falls back to the recorded responses in test/recorded/ when it cannot.
+      # Node's own DuckDB. It reads the recorded responses in test/recorded/
+      # (a small partitioned copy), so it needs no data and no network for it.
       - name: Check the page tells the truth
         run: npm run verify
 

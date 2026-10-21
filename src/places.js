@@ -1,48 +1,58 @@
 /**
  * What the data is, and how the grid should read it.
  *
- * Overture Maps Places: one row per place of interest, worldwide, published as
- * Parquet that is spatially partitioned across a handful of files. Nothing
- * here is downloaded in advance; this module only names the columns and the
- * places the visitor can jump to.
+ * A country-partitioned Parquet copy of the Overture Maps Places release: one
+ * folder per country (`country=GB/part-0.parquet`), the columns this page uses,
+ * rows sorted by a Z-order key so each row group is a small map tile. Nothing
+ * is downloaded in advance; this module names the columns, picks the files a
+ * map window can touch, and lists the places the visitor can jump to.
  */
 
 import { MANIFEST } from './manifest.js';
 import { fileUrl } from './config.js';
 
-/**
- * The flat view the grid reads. Overture nests its attributes in structs
- * (`names.primary`, `taxonomy.primary`, `bbox.xmin`); a view with plain column
- * names lets every grid filter, sort, group and quick search address a column
- * directly, and DuckDB pushes those predicates through the projection to the
- * Parquet scan, where the row-group statistics decide what is read at all.
- */
-export const VIEW_SELECT = `
-  id,
-  names."primary" AS name,
-  taxonomy."primary" AS category,
-  brand.names."primary" AS brand,
-  addresses[1].locality AS locality,
-  addresses[1].country AS country,
-  confidence,
-  bbox.xmin AS lon,
-  bbox.ymin AS lat`;
-
 export const GRID_FIELDS = ['id', 'name', 'category', 'brand', 'locality', 'country', 'confidence', 'lon', 'lat'];
 
-/** `from` for the adapter, over the files that can hold the given window. */
-export function fromFor(files) {
-  const list = files.map((f) => `'${fileUrl(f).replaceAll("'", "''")}'`).join(', ');
-  return `(SELECT ${VIEW_SELECT} FROM read_parquet([${list}]))`;
-}
+const NO_ROWS = `(SELECT ${GRID_FIELDS.map((f) => (f === 'confidence' || f === 'lon' || f === 'lat' ? `NULL::DOUBLE AS ${f}` : `NULL::VARCHAR AS ${f}`)).join(', ')} WHERE false)`;
 
 /**
- * The files whose longitude/latitude extent meets the window. The extents come
- * from the footers (tools/build-manifest.mjs), so a file left out cannot hold a
- * place inside the window.
+ * `from` for the adapter, over the partition files that can hold the window.
+ * DuckDB-Wasm cannot glob https, so the files are listed; `country` comes from
+ * the folder names (hive partitioning), the rest are plain columns, so every
+ * grid filter, sort, group and quick search addresses a column directly and
+ * DuckDB pushes the predicates to the Parquet scan, where the row-group
+ * statistics decide what is read at all.
+ */
+export function fromFor(files) {
+  if (!files.length) return NO_ROWS;
+  const list = files.map((f) => `'${fileUrl(f).replaceAll("'", "''")}'`).join(', ');
+  return `(SELECT ${GRID_FIELDS.join(', ')} FROM read_parquet([${list}], hive_partitioning = true, hive_types = {'country': VARCHAR}))`;
+}
+
+const meets = (box, bbox) => box[0] <= bbox.xmax && box[2] >= bbox.xmin && box[1] <= bbox.ymax && box[3] >= bbox.ymin;
+
+/**
+ * The files with a row group that meets the window. Country extents overlap
+ * (a country's outlying islands stretch its box across the map), so the test
+ * is per row group, from the footers (tools/build-partitioned.mjs): a file left
+ * out cannot hold a place inside the window.
  */
 export function filesFor(bbox) {
-  return MANIFEST.files.filter((f) => f.xmin <= bbox.xmax && f.xmax >= bbox.xmin && f.ymin <= bbox.ymax && f.ymax >= bbox.ymin);
+  return MANIFEST.files.filter((f) => f.groups.some((g) => meets(g, bbox)));
+}
+
+/** Row groups in the given files, and how many of them the window can touch (the rest DuckDB skips from the footer statistics). */
+export function groupsFor(files, bbox) {
+  const total = files.reduce((n, f) => n + f.groups.length, 0);
+  const touched = files.reduce((n, f) => n + f.groups.filter((g) => meets(g, bbox)).length, 0);
+  return { total, touched, skipped: total - touched };
+}
+
+/** How the "What DuckDB ran" panel shows the source: the files, not the whole URLs. */
+export function shortenSource(sql) {
+  return sql
+    .replace(/FROM \(SELECT [^)]*? FROM (read_parquet\(\[.*?\], hive_partitioning = true), hive_types = \{[^}]*\}\)\)/, 'FROM $1) AS places')
+    .replace(/'https?:\/\/[^']*?\/(country=[^']*)'/g, "'$1'");
 }
 
 /** City-centre windows, about two kilometres across. */

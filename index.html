@@ -6,7 +6,7 @@
     <title>The lake is the database: query Overture Maps Places in place with DuckDB and Lattice Grid</title>
     <meta
       name="description"
-      content="81 million places of interest in 11 GB of public Parquet, queried where they sit. DuckDB-Wasm reads only the byte ranges a filter needs and Lattice Grid turns every filter, sort, group and search into SQL."
+      content="81 million places of interest as country-partitioned Parquet, queried where it sits. DuckDB-Wasm opens only the countries a map window touches, reads only the byte ranges a filter needs, and Lattice Grid turns every filter, sort, group and search into SQL."
     />
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="./node_modules/@toclocoinc/lattice-grid/lattice-grid.min.css" />

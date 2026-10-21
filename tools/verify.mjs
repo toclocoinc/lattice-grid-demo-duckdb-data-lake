@@ -12,13 +12,13 @@
  *   - the map drew the rows the grid holds; the theme switch repaints;
  *   - no console errors, no NaN/undefined text, no watermark.
  *
- * Where the data comes from:
+ * Where the data comes from (always the page's `?data=local`, through tools/serve.mjs):
  *
- *   node tools/verify.mjs             live bucket if reachable, else the recording
- *   node tools/verify.mjs --live      live bucket only (fails if unreachable)
- *   node tools/verify.mjs --recorded  the recording in test/recorded/ only, no network for data
- *   node tools/verify.mjs --record    live, and rewrite test/recorded/ and test/expected.json
- *   node tools/verify.mjs --shots dir also write screenshots
+ *   node tools/verify.mjs               the recording in test/recorded/ (no data needed; what CI runs)
+ *   node tools/verify.mjs --local [dir] a local build from tools/build-partitioned.mjs (default data/lake)
+ *   node tools/verify.mjs --record [dir] the same, and rewrite test/recorded/ and test/expected.json; also
+ *                                       checks the copy against the Overture release itself (network)
+ *   node tools/verify.mjs --shots dir   also write screenshots
  *
  * The page's own libraries (DuckDB-Wasm, deck.gl, MapLibre) always come from
  * jsDelivr, so the recorded run still needs those, but not the bucket.
@@ -31,14 +31,16 @@ import { dirname, join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './serve.mjs';
-import { MANIFEST } from '../src/manifest.js';
-import { CATEGORIES, CITIES, filesFor } from '../src/places.js';
+import { CATEGORIES, CITIES } from '../src/places.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
 const shotIndex = args.indexOf('--shots');
 const shotDir = shotIndex >= 0 ? resolve(args[shotIndex + 1]) : null;
+const dirIndex = Math.max(args.indexOf('--local'), args.indexOf('--record'));
+const LOCAL_DIR = resolve(dirIndex >= 0 && args[dirIndex + 1] && !args[dirIndex + 1].startsWith('--') ? args[dirIndex + 1] : join(root, 'data', 'lake'));
+const RELEASE = '2026-09-23.1';
 const EXPECTED_FILE = join(root, 'test', 'expected.json');
 
 const TARGET = CITIES.find((c) => c.id === 'reykjavik');
@@ -65,34 +67,23 @@ async function findChrome() {
   throw new Error(`No browser found. Tried:\n  ${CHROME_CANDIDATES.join('\n  ')}\nSet CHROME_PATH.`);
 }
 
-async function bucketReachable() {
-  try {
-    const f = filesFor(TARGET.bbox)[0];
-    const r = await fetch(`${MANIFEST.host}/${MANIFEST.prefix}${f.name}`, { method: 'HEAD', signal: AbortSignal.timeout(8000) });
-    return r.ok;
-  } catch { return false; }
-}
-
 /* ------------------------------------------------------------------ */
 /* The independent answer: a second DuckDB, in Node                    */
 /* ------------------------------------------------------------------ */
 
-async function nodeAnswers() {
-  const { DuckDBInstance } = await import('@duckdb/node-api');
-  const db = await DuckDBInstance.create(':memory:');
-  const conn = await db.connect();
-  await conn.run('INSTALL httpfs; LOAD httpfs;');
-  const list = filesFor(TARGET.bbox).map((f) => `'${MANIFEST.host}/${MANIFEST.prefix}${f.name}'`).join(', ');
+/**
+ * Questions about the window, asked of `from` (a table expression with the page's columns).
+ * The files are found by reading them, not from the manifest, so the manifest is checked too.
+ */
+async function answersOver(conn, from, extra = '') {
   const b = TARGET.bbox;
-  const inBox = `bbox.xmin BETWEEN ${b.xmin} AND ${b.xmax} AND bbox.ymin BETWEEN ${b.ymin} AND ${b.ymax}`;
-  const view = `(SELECT names."primary" AS name, taxonomy."primary" AS category, brand.names."primary" AS brand, addresses[1].locality AS locality FROM read_parquet([${list}]) WHERE ${inBox})`;
+  const inBox = `lon BETWEEN ${b.xmin} AND ${b.xmax} AND lat BETWEEN ${b.ymin} AND ${b.ymax}`;
+  const view = `(SELECT name, category, brand, locality${extra} FROM ${from} WHERE ${inBox})`;
   const rows = async (sql) => (await conn.runAndReadAll(sql)).getRowObjectsJson();
   const one = async (sql) => Number(Object.values((await rows(sql))[0])[0]);
   const cats = CHIP.values.map((v) => `'${v}'`).join(', ');
   const like = `%${SEARCH}%`;
   return {
-    release: MANIFEST.release,
-    files: filesFor(TARGET.bbox).length,
     total: await one(`SELECT count(*) FROM ${view}`),
     chip: await one(`SELECT count(*) FROM ${view} WHERE category IN (${cats})`),
     search: await one(`SELECT count(*) FROM ${view} WHERE name ILIKE '${like}' OR category ILIKE '${like}' OR brand ILIKE '${like}' OR locality ILIKE '${like}'`),
@@ -104,6 +95,31 @@ async function nodeAnswers() {
     },
     firstByName: (await rows(`SELECT name FROM ${view} ORDER BY name ASC NULLS LAST LIMIT 3`)).map((r) => r.name),
   };
+}
+
+/** The independent answer: a second DuckDB, in Node, over the local build (and, when recording, over the release itself). */
+async function nodeAnswers({ againstRelease }) {
+  const { DuckDBInstance } = await import('@duckdb/node-api');
+  const db = await DuckDBInstance.create(':memory:');
+  const conn = await db.connect();
+  const b = TARGET.bbox;
+  const glob = join(LOCAL_DIR, 'country=*', '*.parquet').replaceAll("'", "''");
+  const local = `read_parquet('${glob}', hive_partitioning = true, hive_types = {'country': VARCHAR})`;
+  const answers = await answersOver(conn, local);
+  const holding = (await conn.runAndReadAll(`
+    SELECT DISTINCT country FROM ${local} WHERE lon BETWEEN ${b.xmin} AND ${b.xmax} AND lat BETWEEN ${b.ymin} AND ${b.ymax} ORDER BY 1`)).getRowObjectsJson().map((r) => r.country);
+  const other = CITIES.find((c) => c.id === 'paris').bbox;
+  const otherPlace = Number((await conn.runAndReadAll(`SELECT count(*) AS n FROM ${local} WHERE lon BETWEEN ${other.xmin} AND ${other.xmax} AND lat BETWEEN ${other.ymin} AND ${other.ymax}`)).getRowObjectsJson()[0].n);
+  const result = { release: RELEASE, countriesWithRows: holding, otherPlace, ...answers };
+  if (againstRelease) {
+    /* The copy must hold exactly what the release holds for this window. */
+    await conn.run("INSTALL httpfs; LOAD httpfs; SET s3_region = 'us-west-2';");
+    const source = `read_parquet('s3://overturemaps-us-west-2/release/${RELEASE}/theme=places/type=place/*.parquet')`;
+    const fromRelease = `(SELECT names."primary" AS name, taxonomy."primary" AS category, brand.names."primary" AS brand, addresses[1].locality AS locality, bbox.xmin AS lon, bbox.ymin AS lat FROM ${source} WHERE bbox.xmin BETWEEN ${b.xmin} AND ${b.xmax} AND bbox.ymin BETWEEN ${b.ymin} AND ${b.ymax})`;
+    const truth = await answersOver(conn, fromRelease);
+    check(JSON.stringify(truth) === JSON.stringify(answers), 'the local copy answers every question as the Overture release itself does', `${int(answers.total)} places in the window`);
+  }
+  return result;
 }
 
 /* ------------------------------------------------------------------ */
@@ -124,36 +140,24 @@ async function run() {
   const chromePath = await findChrome();
 
   const record = flag('--record');
-  let mode;
-  if (record) mode = 'record';
-  else if (flag('--recorded')) mode = 'replay';
-  else if (flag('--live')) mode = 'live';
-  else mode = (await bucketReachable()) ? 'live' : 'replay';
-  if (mode === 'live' && !(await bucketReachable())) throw new Error('The Overture bucket is not reachable from here.');
-  console.log(`Data: ${mode === 'live' ? 'the live public bucket' : mode === 'record' ? 'the live bucket, recording to test/recorded/' : 'the recording in test/recorded/ (no data network)'}`);
+  const mode = record ? 'record' : (flag('--local') ? 'local' : 'replay');
+  console.log(`Data: ${mode === 'replay' ? 'the recording in test/recorded/ (no data needed)' : `${LOCAL_DIR}${record ? ', recording to test/recorded/' : ''}`}`);
 
-  /* The page reads the bucket directly in live mode; through /lake/ otherwise. */
-  served = await startServer(0, { lake: mode === 'live' ? 'live' : mode });
-  if (mode === 'replay' && !served.hasRecording()) throw new Error('There is no recording. Run `node tools/verify.mjs --record` once with network access.');
+  /* The page always reads through /lake/ (?data=local); the server answers from the build or the recording. */
+  served = await startServer(0, { lake: mode, dir: LOCAL_DIR });
+  if (mode === 'replay' && !served.hasRecording()) throw new Error('There is no recording. Run `node tools/verify.mjs --record` once with a local build.');
   const origin = `http://127.0.0.1:${served.port}`;
-  const query = new URLSearchParams({ city: TARGET.id, theme: 'light' });
-  if (mode !== 'live') query.set('data', 'local');
+  const query = new URLSearchParams({ city: TARGET.id, theme: 'light', data: 'local' });
   const pageUrl = `${origin}/?${query}`;
 
   let expected;
   if (mode === 'replay') expected = JSON.parse(await readFile(EXPECTED_FILE, 'utf8'));
   else {
-    expected = await nodeAnswers();
+    expected = await nodeAnswers({ againstRelease: record });
     if (record) { await mkdir(dirname(EXPECTED_FILE), { recursive: true }); await writeFile(EXPECTED_FILE, `${JSON.stringify(expected, null, 1)}\n`); }
-    else {
-      try {
-        const stored = JSON.parse(await readFile(EXPECTED_FILE, 'utf8'));
-        check(stored.total === expected.total && stored.chip === expected.chip, 'the stored expectation still equals Node\'s fresh answer from the live bucket', `${stored.total} / ${expected.total}`);
-      } catch { /* no stored file yet */ }
-    }
   }
   console.log(`Expected for ${TARGET.label}: ${JSON.stringify(expected)}`);
-  check(expected.release === MANIFEST.release, 'the expectation is for the manifest\'s release', expected.release);
+  check(expected.release === RELEASE, 'the expectation is for the release the copy was built from', expected.release);
 
   profile = await mkdtemp(join(tmpdir(), 'lake-verify-'));
   const port = await freePort();
@@ -278,13 +282,23 @@ async function run() {
   check(rows.length > 0 && rows.every((r) => r.lon >= TARGET.bbox.xmin && r.lon <= TARGET.bbox.xmax && r.lat >= TARGET.bbox.ymin && r.lat <= TARGET.bbox.ymax),
     'the first rows all lie inside the window', rows.slice(0, 2).map((r) => r.name).join(' | '));
 
-  const cost = await evaluate(`({ bytes: window.__lakeDemo.cityBytes, files: window.__lakeDemo.files.length, total: ${MANIFEST.totalBytes} })`);
-  check(cost.files === expected.files && cost.files < MANIFEST.files.length, 'only the files that can hold the window were opened', `${cost.files} of ${MANIFEST.files.length}`);
-  check(cost.bytes > 0 && cost.bytes < cost.total * 0.02, 'bytes were fetched, a small share of the dataset', `${(cost.bytes / 1e6).toFixed(1)} MB of ${(cost.total / 1e9).toFixed(2)} GB`);
+  const cost = await evaluate(`(() => { const d = window.__lakeDemo; return {
+    bytes: d.cityBytes, opened: d.files.map((f) => f.country), files: d.files.length, total: d.manifest.totalBytes, countries: d.manifest.countries,
+    groups: d.groups, tile: document.querySelector('[data-stat=partitions] [data-value]').textContent,
+    tileNote: document.querySelector('[data-stat=partitions] .stat-note').textContent,
+    whole: document.querySelector('[data-stat=total] [data-value]').textContent,
+  }; })()`);
+  check(expected.countriesWithRows.every((c) => cost.opened.includes(c)), 'the manifest led the page to every country that holds places in the window', `${expected.countriesWithRows.join(',')} in ${cost.opened.join(',')}`);
+  check(cost.files >= 1 && cost.opened.length < cost.countries * 2 && new Set(cost.opened).size < cost.countries, 'only the partitions that can hold the window were opened', `${new Set(cost.opened).size} of ${cost.countries} countries`);
+  check(cost.tile === `${new Set(cost.opened).size} of ${cost.countries}` && /row groups skipped/.test(cost.tileNote), 'the cost panel says so', `${cost.tile}; ${cost.tileNote}`);
+  check(cost.groups.total > 0 && cost.groups.touched > 0 && cost.groups.skipped >= 0, 'row groups are counted from the footers\' extents', JSON.stringify(cost.groups));
+  check(cost.bytes > 0 && Number.isFinite(cost.total) && cost.total > 0, 'bytes were fetched, against the size of the whole copy', `${(cost.bytes / 1e6).toFixed(2)} MB of ${(cost.total / 1e6).toFixed(2)} MB`);
   const requestsSeen = await evaluate('document.querySelector("[data-meter-note]").textContent');
   check(/range requests/.test(requestsSeen) && !/NaN|undefined/.test(requestsSeen), 'the counter reads', requestsSeen);
   const queryText = await evaluate('document.querySelector(".stat[data-stat=time] [data-value]").textContent');
   check(/^[\d,]+ ms$/.test(queryText), 'a live query time is shown', queryText);
+  const timing = await evaluate('({ boot: window.__lakeDemo.bootMs, query: window.__lakeDemo.lastQueryMs })');
+  console.log(`TIMING cold start (page to first rows): ${timing.boot} ms; last query: ${timing.query} ms`);
   await shoot('01-open');
 
   const map = await evaluate('(() => { const p = window.__lakeDemo.map && window.__lakeDemo.map.provenance(); return p ? { drawn: p.drawn, rows: window.__lakeDemo.grid.rows.count() } : null; })()');
@@ -372,18 +386,8 @@ async function run() {
   await waitFor('window.__lakeDemo.grid.rows.count() > 0', 60000, 'rows back');
 
   /* -------------------------------------------------------------- */
-  /* Another place, the theme                                        */
+  /* The theme, then a place the copy may not hold                   */
   /* -------------------------------------------------------------- */
-  /* Only the live run goes to a second place: the recording holds the one window above. */
-  if (mode === 'live') {
-    const other = CITIES.find((c) => c.id === 'paris');
-    await click('[data-city]', other.label);
-    await waitFor(`window.__lakeDemo.city.id === 'paris' && window.__lakeDemo.matchCount != null && window.__lakeDemo.grid.rows.count() > 0`, 180000, 'the second place');
-    await sleep(1500);
-    const nowCount = await evaluate('window.__lakeDemo.matchCount');
-    check(nowCount > 0 && nowCount !== expected.total, `${other.label}: another place reads another window`, int(nowCount));
-    await shoot('07-paris');
-  }
   await click('button[data-theme]');
   await sleep(1500);
   const theme = await evaluate('({ attr: document.documentElement.dataset.theme, bg: getComputedStyle(document.body).backgroundColor })');
@@ -391,6 +395,15 @@ async function run() {
   await waitFor('window.__lakeDemo && window.__lakeDemo.grid && window.__lakeDemo.grid.rows.count() > 0', 120000, 'rows after the theme switch').catch(() => {});
   await sleep(2000);
   await shoot('08-dark');
+
+  /* A place with no partition in this copy (the small test build) opens nothing and says so; with a full copy it reads. */
+  const other = CITIES.find((c) => c.id === 'paris');
+  await click('[data-city]', other.label);
+  await waitFor(`window.__lakeDemo.city.id === 'paris' && window.__lakeDemo.matchCount != null`, 120000, 'the second place');
+  await sleep(1500);
+  const second = await evaluate(`({ n: window.__lakeDemo.matchCount, tile: document.querySelector('[data-stat=partitions] [data-value]').textContent })`);
+  check(second.n === expected.otherPlace, `${other.label}: the count is the copy's (${int(expected.otherPlace)})`, `${int(second.n)}; countries opened: ${second.tile}`);
+  await shoot('09-other-place');
 
   /* -------------------------------------------------------------- */
   /* Hygiene                                                         */
