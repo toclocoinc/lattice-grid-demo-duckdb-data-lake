@@ -18,10 +18,10 @@
  *   node tools/verify.mjs --local [dir] a local build from tools/build-partitioned.mjs (default data/lake)
  *   node tools/verify.mjs --record [dir] the same, and rewrite test/recorded/ and test/expected.json; also
  *                                       checks the copy against the Overture release itself (network)
- *   node tools/verify.mjs --shots dir   also write screenshots
+ *   node tools/verify.mjs --shots dir   also write screenshots (--width 390 for a phone)
  *
  * The page's own libraries (DuckDB-Wasm, deck.gl, MapLibre) always come from
- * jsDelivr, so the recorded run still needs those, but not the bucket.
+ * jsDelivr, so the recorded run still needs those, but no data.
  */
 
 import { spawn } from 'node:child_process';
@@ -161,7 +161,8 @@ async function run() {
 
   profile = await mkdtemp(join(tmpdir(), 'lake-verify-'));
   const port = await freePort();
-  const VIEWPORT = { width: 1440, height: 1000 };
+  const widthIndex = args.indexOf('--width');
+  const VIEWPORT = { width: widthIndex >= 0 ? Number(args[widthIndex + 1]) : 1440, height: 1000 };
   browser = spawn(chromePath, [
     '--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
     '--no-first-run', '--no-default-browser-check', '--no-sandbox', '--disable-dev-shm-usage', '--hide-scrollbars',
