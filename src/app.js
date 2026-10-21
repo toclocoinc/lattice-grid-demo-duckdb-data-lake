@@ -185,20 +185,21 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
   /* The cost panel                                                      */
   /* ------------------------------------------------------------------ */
 
-  const tile = (id, label) => {
+  const tile = (id, label, note) => {
     const box = el('div', 'stat');
     box.dataset.stat = id;
     const value = el('div', 'stat-value', '—');
     value.dataset.value = '';
     box.append(el('div', 'stat-label', label), value);
+    if (note) box.append(el('div', 'stat-note', note));
     stats.append(box);
     return { box, value };
   };
-  const matchTile = tile('matches', 'Places match');
+  const matchTile = tile('matches', 'Places match', 'inside the chosen window');
   const fetchedTile = tile('fetched', 'Fetched from the lake');
-  const totalTile = tile('total', 'The whole dataset');
-  const timeTile = tile('time', 'Last query');
-  const filesTile = tile('files', 'Files opened');
+  const totalTile = tile('total', 'The whole dataset', `${fmt.int(MANIFEST.totalRows)} places in ${MANIFEST.files.length} files`);
+  const timeTile = tile('time', 'Last query', 'DuckDB, in your browser');
+  const filesTile = tile('files', 'Files opened', 'the rest are never touched');
   totalTile.value.textContent = fmt.bytes(MANIFEST.totalBytes);
   const meterBar = el('div', 'meter');
   meterBar.setAttribute('role', 'img');

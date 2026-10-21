@@ -82,10 +82,10 @@ export function filterTree(city, categoryIds) {
 }
 
 export const COLUMNS = [
-  { field: 'name', title: 'Name', filter: { type: 'text' }, layout: { width: 230, pin: 'start' }, allowGroup: false },
-  { field: 'category', title: 'Category', filter: { type: 'text' }, layout: { width: 190 }, allowGroup: true },
-  { field: 'brand', title: 'Brand', filter: { type: 'text' }, layout: { width: 170 }, allowGroup: true },
-  { field: 'locality', title: 'City', filter: { type: 'text' }, layout: { width: 140 }, allowGroup: false },
+  { field: 'name', title: 'Name', filter: { type: 'text' }, layout: { width: 220, pin: 'start' }, allowGroup: false },
+  { field: 'category', title: 'Category', filter: { type: 'text' }, layout: { width: 180 }, allowGroup: true },
+  { field: 'brand', title: 'Brand', filter: { type: 'text' }, layout: { width: 160 }, allowGroup: true },
+  { field: 'locality', title: 'City', filter: { type: 'text' }, layout: { width: 140, hidden: true }, allowGroup: false },
   { field: 'country', title: 'Country', filter: { type: 'text' }, layout: { width: 90 }, allowGroup: false },
   { field: 'confidence', title: 'Confidence', type: 'number', filter: { type: 'number' }, format: { decimals: 2 }, layout: { width: 110 }, allowGroup: false },
   { field: 'lon', title: 'Longitude', type: 'number', filter: { type: 'number' }, format: { decimals: 5 }, layout: { width: 110, hidden: true }, allowGroup: false },
