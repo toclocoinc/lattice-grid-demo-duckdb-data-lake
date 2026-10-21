@@ -1,0 +1,5 @@
+node_modules/
+.cache/
+.scratch-12014/
+*.parquet
+data/lake/

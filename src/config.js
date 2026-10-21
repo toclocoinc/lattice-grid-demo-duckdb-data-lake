@@ -1,0 +1,26 @@
+/**
+ * Where the data is read from. **This is the only place the data address is set.**
+ *
+ * The page does not host any data. DuckDB-Wasm reads Overture Maps' own
+ * public Parquet over HTTPS, from the bucket that publishes it, in byte
+ * ranges. `?data=local` points the same reads at this site's own `/lake/`
+ * route instead, which `tools/serve.mjs` answers from a recording (or by
+ * forwarding to the bucket), so the page can be developed and checked with no
+ * network and nothing is ever sent from a visitor to anywhere but the bucket.
+ */
+
+import { MANIFEST } from './manifest.js';
+
+export const LAKE_BASE = new URLSearchParams(location.search).get('data') === 'local'
+  ? new URL('./lake', location.href).href
+  : MANIFEST.host;
+
+/** The absolute address of one Places file. DuckDB resolves it inside a worker, so it must be absolute. */
+export const fileUrl = (file) => `${LAKE_BASE}/${MANIFEST.prefix}${file.name}`;
+
+/** Pinned, so the page does not change on someone else's release day. */
+export const DUCKDB_VERSION = '1.32.0';
+export const DUCKDB_MODULE = `https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@${DUCKDB_VERSION}/+esm`;
+export const DECK_URL = 'https://cdn.jsdelivr.net/npm/deck.gl@9.1.12/dist.min.js';
+export const MAPLIBRE_URL = 'https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.0/dist/maplibre-gl.js';
+export const MAPLIBRE_CSS = 'https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.0/dist/maplibre-gl.css';

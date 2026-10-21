@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The lake is the database: query Overture Maps Places in place with DuckDB and Lattice Grid</title>
+    <meta
+      name="description"
+      content="81 million places of interest in 11 GB of public Parquet, queried where they sit. DuckDB-Wasm reads only the byte ranges a filter needs and Lattice Grid turns every filter, sort, group and search into SQL."
+    />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./node_modules/@toclocoinc/lattice-grid/lattice-grid.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.0/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="app">
+      <div class="loading">
+        <h1>The lake is the database</h1>
+        <p class="loading-message">Starting...</p>
+      </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/deck.gl@9.1.12/dist.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
