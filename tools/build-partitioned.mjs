@@ -122,7 +122,7 @@ await conn.run(`CREATE OR REPLACE MACRO zkey(lon, lat) AS
 const q = (path) => path.replaceAll("'", "''");
 const writeSorted = (from, to, tail = '') => conn.run(`
   COPY (SELECT * FROM ${from} ORDER BY zkey(lon, lat), id ${tail})
-  TO '${q(to)}' (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE ${ROW_GROUP})`);
+  TO '${q(to)}' (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE ${ROW_GROUP}, WRITE_BLOOM_FILTER false)`);
 
 const entries = [];
 let done = 0;

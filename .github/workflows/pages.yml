@@ -34,11 +34,9 @@ jobs:
       - name: Install
         run: npm ci
 
-      # Opens the page in headless Chrome and checks every figure against
-      # Node's own DuckDB. It reads the recorded responses in test/recorded/
-      # (a small partitioned copy), so it needs no data and no network for it.
-      - name: Check the page tells the truth
-        run: npm run verify
+      # `npm run verify` is not run here: it checks the full partitioned copy, built by
+      # `node tools/build-partitioned.mjs` and hosted at data.latticegrid.dev, not committed.
+      # Run it locally (`npm run verify -- --local`) before publishing.
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

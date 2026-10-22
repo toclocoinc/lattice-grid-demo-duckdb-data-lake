@@ -5,12 +5,14 @@
   "type": "module",
   "license": "MIT",
   "dependencies": {
-    "@toclocoinc/lattice-grid": "^1.110.3"
+    "@toclocoinc/lattice-grid": "^1.111.3"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.5-r.5"
   },
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "description": "Query a country-partitioned Parquet copy of Overture Maps Places in place: DuckDB-Wasm reads it over HTTPS and Lattice Grid turns every filter into pruned byte-range reads.",
   "scripts": {
     "start": "node tools/serve.mjs",
