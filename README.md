@@ -25,3 +25,11 @@ npm run verify -- --local        # ... against data/lake
 URL options: `?city=reykjavik|sf|nyc|london|paris|tokyo|sydney`, `?theme=light|dark`, `?data=local`.
 
 See `data/README.md` for building and publishing the copy. MIT licence for the code.
+
+## Loading
+
+The first visit has slow steps, so the page says what it is doing instead of showing a blank page (`src/loading.js`, copied from the SaaS analytics demo):
+
+1. A status line in the static HTML (spinner, one plain-English sentence, progress bar), on screen from first paint: "Downloading the query engine (33 MB, first visit only): n of m MB" (real bytes, reported by DuckDB-Wasm's `instantiate`), "Starting the engine", then "Reading the manifest and the country partitions <place> opens (n of up to m MB)". The `m` is the size of the partition files the window opens; DuckDB reads only byte ranges of them, so the bar may stop short. The one-off Parquet reader download is named separately.
+2. Every panel (cost tiles, grid, map) is covered by a loading state until the first rows arrive, and again when the place changes.
+3. The map libraries load with `async` and the map stylesheet does not block rendering, so they do not delay first paint.

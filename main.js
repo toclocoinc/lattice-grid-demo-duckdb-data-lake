@@ -8,6 +8,7 @@ import { createMapView } from './node_modules/@toclocoinc/lattice-grid/modules/m
 import { DEMO_LICENCE } from './src/licence.js';
 import { startDuckDB, createByteMeter } from './src/duckdb.js';
 import { buildApp } from './src/app.js';
+import { createStatus, megabytes } from './src/loading.js';
 
 LG.setLicence(DEMO_LICENCE);
 
@@ -35,12 +36,21 @@ function showMessage(title, message, hint) {
 
 async function start() {
   const started = performance.now();
-  const update = showMessage('The lake is the database', 'Starting DuckDB in your browser...');
+  /* The status line is in index.html, so it is there from first paint. */
+  const status = createStatus(root.querySelector('.load-status'));
   try {
     const meter = createByteMeter();
-    const { connection, version, close } = await startDuckDB(update);
-    update('Opening the lake...');
-    const built = buildApp({ root, LG, createMapView, connection, meter, duckdbVersion: version });
+    const { connection, version, close } = await startDuckDB(
+      (message) => status.set(message),
+      ({ loaded, total }) => status.set(
+        `Downloading the query engine (${megabytes(total)}, first visit only): ${megabytes(loaded)} of ${megabytes(total)}`,
+        loaded / total,
+      ),
+    );
+    /* The map libraries load beside the engine download; they are needed only now. */
+    for (let i = 0; i < 100 && !(window.deck && window.maplibregl); i += 1) await new Promise((r) => setTimeout(r, 100));
+    status.set('Reading the manifest and the country partitions a window opens');
+    const built = buildApp({ root, LG, createMapView, connection, meter, duckdbVersion: version, status });
     window.addEventListener('pagehide', () => { built.destroy(); close(); }, { once: true });
 
     /* Ready means the first rows and the match count are on screen. */

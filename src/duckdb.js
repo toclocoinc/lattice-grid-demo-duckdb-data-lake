@@ -18,6 +18,9 @@
 
 import { DUCKDB_MODULE, DUCKDB_VERSION } from './config.js';
 
+/** The engine's WebAssembly once decoded, which is what the progress callback counts. Used only when the server gives no usable total. */
+export const ENGINE_BYTES = 34242586;
+
 const CHANNEL = 'lake-bytes';
 
 /** The worker preamble: count every request, then load DuckDB's own worker script. */
@@ -77,18 +80,26 @@ export function createByteMeter() {
  * Start the engine and open a connection with httpfs loaded.
  *
  * @param {(message: string) => void} [onStatus] progress, for the loading panel
+ * @param {(progress: {loaded: number, total: number}) => void} [onDownload] bytes of the engine downloaded so far
  */
-export async function startDuckDB(onStatus = () => {}) {
-  onStatus(`Loading DuckDB-Wasm ${DUCKDB_VERSION} from jsDelivr...`);
+export async function startDuckDB(onStatus = () => {}, onDownload = () => {}) {
+  onStatus('Loading the DuckDB library');
   const duckdb = await import(/* @vite-ignore */ DUCKDB_MODULE);
   const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
 
-  onStatus('Starting the engine...');
+  onStatus('Downloading the query engine');
   const blob = new Blob([workerSource(bundle.mainWorker)], { type: 'text/javascript' });
   const workerUrl = URL.createObjectURL(blob);
   const worker = new Worker(workerUrl);
   const db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(duckdb.LogLevel.ERROR), worker);
-  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  /* DuckDB fetches its own WebAssembly inside `instantiate` and reports the bytes, so the bar is the real download. */
+  let starting = false;
+  await db.instantiate(bundle.mainModule, bundle.pthreadWorker, (progress) => {
+    const total = progress.bytesTotal >= progress.bytesLoaded && progress.bytesTotal > 0 ? progress.bytesTotal : ENGINE_BYTES;
+    const loaded = Math.min(progress.bytesLoaded, total);
+    onDownload({ loaded, total });
+    if (loaded >= total && !starting) { starting = true; onStatus('Starting the engine'); }
+  });
   URL.revokeObjectURL(workerUrl);
 
   const connection = await db.connect();

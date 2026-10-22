@@ -168,3 +168,50 @@ body {
   .search { width: 100%; }
   .row-label { min-width: 0; width: 100%; }
 }
+
+/* The status line (spinner, words, bar) and the cover over a panel that is still waiting. */
+.spinner {
+  display: inline-block;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--rule);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+.load-status {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 9px;
+  background: var(--surface);
+  padding: 14px 16px;
+  text-align: left;
+}
+.load-status[hidden], .panel-loading[hidden], .load-bar[hidden] { display: none; }
+.load-text { margin: 0; color: var(--ink); font-size: 14.5px; }
+.load-bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--rule); overflow: hidden; }
+.load-fill { height: 100%; width: 0; background: var(--accent); border-radius: 4px; transition: width 0.25s ease-out; }
+.loading .load-status { margin-top: 22px; }
+.panel-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 9px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 14px;
+  text-align: center;
+}
+.panel-loading p { margin: 0; }
