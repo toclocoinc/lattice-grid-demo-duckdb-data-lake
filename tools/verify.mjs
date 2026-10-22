@@ -27,11 +27,38 @@
 import { spawn } from 'node:child_process';
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { inflateSync } from 'node:zlib';
 import { dirname, join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './serve.mjs';
 import { CATEGORIES, CITIES } from '../src/places.js';
+
+/* Count distinct colours in a PNG (8-bit RGB/RGBA, non-interlaced): a blank grey box has one or two. */
+function distinctColours(png) {
+  const w = png.readUInt32BE(16), h = png.readUInt32BE(20), type = png[25];
+  const bpp = type === 6 ? 4 : 3;
+  const chunks = [];
+  for (let i = 8; i < png.length;) { const len = png.readUInt32BE(i); if (png.toString('latin1', i + 4, i + 8) === 'IDAT') chunks.push(png.subarray(i + 8, i + 8 + len)); i += 12 + len; }
+  const raw = inflateSync(Buffer.concat(chunks));
+  const stride = w * bpp;
+  let prev = Buffer.alloc(stride);
+  const seen = new Set();
+  for (let y = 0; y < h; y += 1) {
+    const f = raw[y * (stride + 1)];
+    const line = Buffer.from(raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1)));
+    for (let x = 0; x < stride; x += 1) {
+      const a = x >= bpp ? line[x - bpp] : 0, b = prev[x], c = x >= bpp ? prev[x - bpp] : 0;
+      let add = 0;
+      if (f === 1) add = a; else if (f === 2) add = b; else if (f === 3) add = (a + b) >> 1;
+      else if (f === 4) { const pa = Math.abs(b - c), pb = Math.abs(a - c), pc = Math.abs(a + b - 2 * c); add = pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
+      line[x] = (line[x] + add) & 255;
+    }
+    for (let x = 0; x < w; x += 2) seen.add(line.readUIntBE(x * bpp, 3) >> 3);
+    prev = line;
+  }
+  return seen.size;
+}
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -304,6 +331,16 @@ async function run() {
 
   const map = await evaluate('(() => { const p = window.__lakeDemo.map && window.__lakeDemo.map.provenance(); return p ? { drawn: p.drawn, rows: window.__lakeDemo.grid.rows.count() } : null; })()');
   check(map && map.drawn > 0 && map.drawn <= map.rows, 'the map draws the rows the grid holds', map ? `${map.drawn} of ${map.rows}` : 'no map');
+  /* Pixels, not provenance: the basemap and points must really be on the canvas. */
+  const box = await evaluate('(() => { const e = document.querySelector(".map-host"); e.scrollIntoView({ block: "center" }); const r = e.getBoundingClientRect(); const c = e.querySelector("canvas"); return { x: r.left, y: r.top, width: r.width, height: r.height, canvas: c ? c.clientWidth * c.clientHeight : 0, covered: !!document.querySelector(".map-pane .panel-loading:not([hidden])") }; })()');
+  check(box.width > 200 && box.height > 200 && box.canvas > 0 && !box.covered, 'the map pane has a size, a canvas and no loading cover', JSON.stringify(box));
+  let colours = 0;
+  for (let attempt = 0; attempt < 15 && colours < 12; attempt += 1) {
+    const { data } = await call('Page.captureScreenshot', { format: 'png', clip: { x: box.x, y: box.y, width: box.width, height: box.height, scale: 1 } });
+    colours = distinctColours(Buffer.from(data, 'base64'));
+    if (colours < 12) await sleep(1000);
+  }
+  check(colours >= 12, 'the map canvas shows a drawn basemap and points, not a blank box', `${colours} distinct colours`);
 
   /* -------------------------------------------------------------- */
   /* Category chip                                                   */

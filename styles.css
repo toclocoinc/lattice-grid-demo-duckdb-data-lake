@@ -215,3 +215,8 @@ body {
   text-align: center;
 }
 .panel-loading p { margin: 0; }
+
+/* The wrapper that carries a panel's cover: it must not change the panel's size. */
+.slot { position: relative; min-width: 0; }
+.pane > .slot { height: 100%; width: 100%; }
+.slot > .stats { min-height: 84px; }
