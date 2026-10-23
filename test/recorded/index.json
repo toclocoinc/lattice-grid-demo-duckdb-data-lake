@@ -1,43 +1,64 @@
 {
+ "HEAD /country=GL/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"a0e31222edff1c4c88e97d7222bb00b7\"",
+   "content-length": "55623"
+  },
+  "file": null
+ },
+ "GET /country=GL/part-0.parquet bytes=39239-55622": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 39239-55622/55623",
+   "etag": "\"a0e31222edff1c4c88e97d7222bb00b7\"",
+   "content-length": "16384"
+  },
+  "file": "5a82753bb7f9916a.bin"
+ },
  "HEAD /country=IS/part-0.parquet -": {
   "status": 200,
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-length": "825589"
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
+   "content-length": "823419"
   },
   "file": null
  },
- "GET /country=IS/part-0.parquet bytes=809205-825588": {
+ "GET /country=IS/part-0.parquet bytes=807035-823418": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 809205-825588/825589",
+   "content-range": "bytes 807035-823418/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
    "content-length": "16384"
   },
-  "file": "8af209059cd13da7.bin"
+  "file": "f02de936e2feb716.bin"
  },
- "GET /country=IS/part-0.parquet bytes=720607-809204": {
+ "GET /country=IS/part-0.parquet bytes=720607-807034": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 720607-809204/825589",
-   "content-length": "88598"
+   "content-range": "bytes 720607-807034/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
+   "content-length": "86428"
   },
-  "file": "ffbcda693f6a22c7.bin"
+  "file": "2befadca3fd5ff40.bin"
  },
  "GET /country=IS/part-0.parquet bytes=4-411599": {
   "status": 206,
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 4-411599/825589",
+   "content-range": "bytes 4-411599/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
    "content-length": "411596"
   },
   "file": "f29ab8b3af348ba5.bin"
@@ -47,8 +68,8 @@
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 411600-593781/825589",
+   "content-range": "bytes 411600-593781/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
    "content-length": "182182"
   },
   "file": "966f6e355bf97871.bin"
@@ -58,8 +79,8 @@
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 593782-623046/825589",
+   "content-range": "bytes 593782-623046/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
    "content-length": "29265"
   },
   "file": "c6055c6a65b847fe.bin"
@@ -69,8 +90,8 @@
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 623047-628106/825589",
+   "content-range": "bytes 623047-628106/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
    "content-length": "5060"
   },
   "file": "1f9c9a2de69c8b0c.bin"
@@ -80,8 +101,8 @@
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 628107-639507/825589",
+   "content-range": "bytes 628107-639507/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
    "content-length": "11401"
   },
   "file": "e779243fd27bb397.bin"
@@ -91,10 +112,1163 @@
   "headers": {
    "content-type": "application/octet-stream",
    "accept-ranges": "bytes",
-   "etag": "\"825589-1792613193325\"",
-   "content-range": "bytes 639508-720606/825589",
+   "content-range": "bytes 639508-720606/823419",
+   "etag": "\"731d087a0d41ce45179142267d17b183\"",
    "content-length": "81099"
   },
   "file": "b5962d920cc3f9fd.bin"
+ },
+ "HEAD /country=RU/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"efe653489dd42aea954a09217286b79d-4\"",
+   "content-length": "26754549"
+  },
+  "file": null
+ },
+ "GET /country=RU/part-0.parquet bytes=26721781-26754548": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 26721781-26754548/26754549",
+   "etag": "\"efe653489dd42aea954a09217286b79d-4\"",
+   "content-length": "32768"
+  },
+  "file": "8406ea4a56e11948.bin"
+ },
+ "GET /country=RU/part-0.parquet bytes=3675488-4155246": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3675488-4155246/26754549",
+   "etag": "\"efe653489dd42aea954a09217286b79d-4\"",
+   "content-length": "479759"
+  },
+  "file": "c5bc653736df4a08.bin"
+ },
+ "HEAD /country=ZZ/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"a780d8dc359ba94eaa6beecb105caba8\"",
+   "content-length": "166273"
+  },
+  "file": null
+ },
+ "GET /country=ZZ/part-0.parquet bytes=149889-166272": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 149889-166272/166273",
+   "etag": "\"a780d8dc359ba94eaa6beecb105caba8\"",
+   "content-length": "16384"
+  },
+  "file": "9f7e94f6e96ada68.bin"
+ },
+ "GET /country=ZZ/part-0.parquet bytes=146548-149888": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 146548-149888/166273",
+   "etag": "\"a780d8dc359ba94eaa6beecb105caba8\"",
+   "content-length": "3341"
+  },
+  "file": "aaf26bf52305105c.bin"
+ },
+ "GET /country=GL/part-0.parquet bytes=38135-39238": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 38135-39238/55623",
+   "etag": "\"a0e31222edff1c4c88e97d7222bb00b7\"",
+   "content-length": "1104"
+  },
+  "file": "2ddb4ffc894fa8c3.bin"
+ },
+ "GET /country=GL/part-0.parquet bytes=24797-38134": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 24797-38134/55623",
+   "etag": "\"a0e31222edff1c4c88e97d7222bb00b7\"",
+   "content-length": "13338"
+  },
+  "file": "3ff302a3fed2f403.bin"
+ },
+ "GET /country=RU/part-0.parquet bytes=2065686-3096888": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 2065686-3096888/26754549",
+   "etag": "\"efe653489dd42aea954a09217286b79d-4\"",
+   "content-length": "1031203"
+  },
+  "file": "2f0679ebc076bbf3.bin"
+ },
+ "GET /country=ZZ/part-0.parquet bytes=77138-119798": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 77138-119798/166273",
+   "etag": "\"a780d8dc359ba94eaa6beecb105caba8\"",
+   "content-length": "42661"
+  },
+  "file": "25c77dcef1f1e17e.bin"
+ },
+ "GET /country=RU/part-0.parquet bytes=3096889-3214568": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3096889-3214568/26754549",
+   "etag": "\"efe653489dd42aea954a09217286b79d-4\"",
+   "content-length": "117680"
+  },
+  "file": "e0fefbeb9d79aeb4.bin"
+ },
+ "GET /country=ZZ/part-0.parquet bytes=119799-127772": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 119799-127772/166273",
+   "etag": "\"a780d8dc359ba94eaa6beecb105caba8\"",
+   "content-length": "7974"
+  },
+  "file": "ca45d016683bfa22.bin"
+ },
+ "GET /country=RU/part-0.parquet bytes=3214569-3253146": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3214569-3253146/26754549",
+   "etag": "\"efe653489dd42aea954a09217286b79d-4\"",
+   "content-length": "38578"
+  },
+  "file": "cb329943b3f618da.bin"
+ },
+ "GET /country=ZZ/part-0.parquet bytes=127773-128876": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 127773-128876/166273",
+   "etag": "\"a780d8dc359ba94eaa6beecb105caba8\"",
+   "content-length": "1104"
+  },
+  "file": "a95d95d6458bb7f7.bin"
+ },
+ "HEAD /country=BM/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"52ccc68226dbec37a76919c1dae62a74\"",
+   "content-length": "94147"
+  },
+  "file": null
+ },
+ "GET /country=BM/part-0.parquet bytes=77763-94146": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 77763-94146/94147",
+   "etag": "\"52ccc68226dbec37a76919c1dae62a74\"",
+   "content-length": "16384"
+  },
+  "file": "02928dc42afb1bc5.bin"
+ },
+ "HEAD /country=CW/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"7d281bfe6fbc81cb5345ce7bd1018b20\"",
+   "content-length": "203239"
+  },
+  "file": null
+ },
+ "GET /country=CW/part-0.parquet bytes=186855-203238": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 186855-203238/203239",
+   "etag": "\"7d281bfe6fbc81cb5345ce7bd1018b20\"",
+   "content-length": "16384"
+  },
+  "file": "46b1db9cd176da69.bin"
+ },
+ "GET /country=CW/part-0.parquet bytes=181166-186854": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 181166-186854/203239",
+   "etag": "\"7d281bfe6fbc81cb5345ce7bd1018b20\"",
+   "content-length": "5689"
+  },
+  "file": "35c1aa2067da8cae.bin"
+ },
+ "HEAD /country=FR/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "93526502"
+  },
+  "file": null
+ },
+ "GET /country=FR/part-0.parquet bytes=93395430-93526501": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 93395430-93526501/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "131072"
+  },
+  "file": "b98e7b518fd98a2c.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=20686593-21227570": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 20686593-21227570/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "540978"
+  },
+  "file": "0f831d8ed16c8927.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=63037115-63579902": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 63037115-63579902/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "542788"
+  },
+  "file": "e32314666f109b93.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=67275712-67798384": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 67275712-67798384/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "522673"
+  },
+  "file": "bdac518268772d24.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=63579972-65648337": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 63579972-65648337/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "2068366"
+  },
+  "file": "fc6d818088a1952a.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=65648338-66615406": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 65648338-66615406/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "967069"
+  },
+  "file": "4c1fb5878f37d205.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=66615407-66744581": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 66615407-66744581/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "129175"
+  },
+  "file": "442abee99517e712.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=66744582-66808327": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 66744582-66808327/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "63746"
+  },
+  "file": "38f1ac1a683c6064.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=66808328-66846326": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 66808328-66846326/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "37999"
+  },
+  "file": "20824db418fc06ec.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=66846327-67275711": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 66846327-67275711/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "429385"
+  },
+  "file": "9afdcf31ff210cff.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=71497075-72019545": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 71497075-72019545/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "522471"
+  },
+  "file": "59372f6686a0b73e.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=67798454-69864114": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 67798454-69864114/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "2065661"
+  },
+  "file": "25bfaa5d9c27e36d.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=69864115-70827540": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 69864115-70827540/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "963426"
+  },
+  "file": "fda1809d99242d7f.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=70827541-70957754": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 70827541-70957754/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "130214"
+  },
+  "file": "48f32c0977ea07c6.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=70957755-71022703": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 70957755-71022703/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "64949"
+  },
+  "file": "891388089fa29790.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=71022704-71066973": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 71022704-71066973/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "44270"
+  },
+  "file": "0046df84776f0c0a.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=71066974-71497074": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 71066974-71497074/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "430101"
+  },
+  "file": "83dea821da89a449.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=75690142-76216033": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 75690142-76216033/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "525892"
+  },
+  "file": "477fe116085716e4.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=79945720-80485105": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 79945720-80485105/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "539386"
+  },
+  "file": "0f2679e8da307b45.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=92648535-93169060": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 92648535-93169060/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "520526"
+  },
+  "file": "dd5388813d554047.bin"
+ },
+ "HEAD /country=GG/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"b87d7cda3e4d70f84edce3aad526d932\"",
+   "content-length": "82340"
+  },
+  "file": null
+ },
+ "GET /country=GG/part-0.parquet bytes=65956-82339": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 65956-82339/82340",
+   "etag": "\"b87d7cda3e4d70f84edce3aad526d932\"",
+   "content-length": "16384"
+  },
+  "file": "d5663df1fd350386.bin"
+ },
+ "HEAD /country=HK/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"d091ed1b6f89756e547bb86f16f6de30\"",
+   "content-length": "5956651"
+  },
+  "file": null
+ },
+ "GET /country=HK/part-0.parquet bytes=5940267-5956650": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 5940267-5956650/5956651",
+   "etag": "\"d091ed1b6f89756e547bb86f16f6de30\"",
+   "content-length": "16384"
+  },
+  "file": "a266e908af1eaf0c.bin"
+ },
+ "GET /country=HK/part-0.parquet bytes=3826599-4277961": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3826599-4277961/5956651",
+   "etag": "\"d091ed1b6f89756e547bb86f16f6de30\"",
+   "content-length": "451363"
+  },
+  "file": "7a3c9317a1061916.bin"
+ },
+ "GET /country=HK/part-0.parquet bytes=5775559-5940266": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 5775559-5940266/5956651",
+   "etag": "\"d091ed1b6f89756e547bb86f16f6de30\"",
+   "content-length": "164708"
+  },
+  "file": "e76cad1dd6a1899e.bin"
+ },
+ "HEAD /country=US/part-3.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "175846987"
+  },
+  "file": null
+ },
+ "GET /country=US/part-3.parquet bytes=175584843-175846986": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 175584843-175846986/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "262144"
+  },
+  "file": "ea6bc30c863ebcae.bin"
+ },
+ "GET /country=BM/part-0.parquet bytes=66271-77762": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 66271-77762/94147",
+   "etag": "\"52ccc68226dbec37a76919c1dae62a74\"",
+   "content-length": "11492"
+  },
+  "file": "f8ac027b56e413c3.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=20002455-20131400": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 20002455-20131400/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "128946"
+  },
+  "file": "c785a1df643506ac.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=75037894-75166765": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 75037894-75166765/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "128872"
+  },
+  "file": "5adac72a8adcfcfd.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=72019615-74085090": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 72019615-74085090/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "2065476"
+  },
+  "file": "d09b6871df831a20.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=74085091-75037893": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 74085091-75037893/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "952803"
+  },
+  "file": "76a2bc4a971024a0.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=75166766-75227247": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 75166766-75227247/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "60482"
+  },
+  "file": "07a1e6fcedf2d3a1.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=75227248-75259119": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 75227248-75259119/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "31872"
+  },
+  "file": "ea3801255da0b7da.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=75259120-75690141": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 75259120-75690141/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "431022"
+  },
+  "file": "26bd068fcedcae66.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=91985786-92112583": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 91985786-92112583/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "126798"
+  },
+  "file": "1c430d3360b77cbe.bin"
+ },
+ "GET /country=GG/part-0.parquet bytes=54924-65955": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 54924-65955/82340",
+   "etag": "\"b87d7cda3e4d70f84edce3aad526d932\"",
+   "content-length": "11032"
+  },
+  "file": "29c5ac011c5f86f3.bin"
+ },
+ "GET /country=FR/part-0.parquet bytes=62338279-62466311": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 62338279-62466311/93526502",
+   "etag": "\"4e3ba0da6526c29785a82465e26c1b3d-12\"",
+   "content-length": "128033"
+  },
+  "file": "0d19f7ee861c27ff.bin"
+ },
+ "HEAD /country=KY/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"2fca4cfa2ddc6a0fbd549a13b70b4202\"",
+   "content-length": "137591"
+  },
+  "file": null
+ },
+ "GET /country=KY/part-0.parquet bytes=121207-137590": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 121207-137590/137591",
+   "etag": "\"2fca4cfa2ddc6a0fbd549a13b70b4202\"",
+   "content-length": "16384"
+  },
+  "file": "239bc1c7824e69a3.bin"
+ },
+ "GET /country=KY/part-0.parquet bytes=98152-121206": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 98152-121206/137591",
+   "etag": "\"2fca4cfa2ddc6a0fbd549a13b70b4202\"",
+   "content-length": "23055"
+  },
+  "file": "077aa8621ac860cb.bin"
+ },
+ "HEAD /country=PR/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"ef532759c10256e8ab0ea6cafa339a3e\"",
+   "content-length": "4103405"
+  },
+  "file": null
+ },
+ "GET /country=PR/part-0.parquet bytes=4087021-4103404": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 4087021-4103404/4103405",
+   "etag": "\"ef532759c10256e8ab0ea6cafa339a3e\"",
+   "content-length": "16384"
+  },
+  "file": "f08e720669db1945.bin"
+ },
+ "GET /country=PR/part-0.parquet bytes=3639408-4087020": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3639408-4087020/4103405",
+   "etag": "\"ef532759c10256e8ab0ea6cafa339a3e\"",
+   "content-length": "447613"
+  },
+  "file": "7f960ed86ec6c90d.bin"
+ },
+ "HEAD /country=US/part-1.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"d02c55f9158ebdfa04dec0a0a96966aa-22\"",
+   "content-length": "177235586"
+  },
+  "file": null
+ },
+ "GET /country=US/part-1.parquet bytes=176973442-177235585": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 176973442-177235585/177235586",
+   "etag": "\"d02c55f9158ebdfa04dec0a0a96966aa-22\"",
+   "content-length": "262144"
+  },
+  "file": "993b7339a5c8eccc.bin"
+ },
+ "GET /country=US/part-1.parquet bytes=94208817-94654813": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 94208817-94654813/177235586",
+   "etag": "\"d02c55f9158ebdfa04dec0a0a96966aa-22\"",
+   "content-length": "445997"
+  },
+  "file": "f64a0606ef04f3db.bin"
+ },
+ "HEAD /country=US/part-2.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "177171614"
+  },
+  "file": null
+ },
+ "GET /country=US/part-2.parquet bytes=176909470-177171613": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 176909470-177171613/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "262144"
+  },
+  "file": "e342992eb4790b87.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=173318487-173767132": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 173318487-173767132/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "448646"
+  },
+  "file": "846c24bc4749590a.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=15386948-15822675": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 15386948-15822675/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "435728"
+  },
+  "file": "0e0afb15b15554e3.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=14928126-15073924": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 14928126-15073924/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "145799"
+  },
+  "file": "659d105ae23056bd.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=11885358-13951674": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 11885358-13951674/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "2066317"
+  },
+  "file": "01c1e46300616a9c.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=13951675-14928125": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 13951675-14928125/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "976451"
+  },
+  "file": "2841aa7aa82fd7dd.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=15073925-15124070": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 15073925-15124070/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "50146"
+  },
+  "file": "fb36d51b141a50ac.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=15124071-15144416": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 15124071-15144416/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "20346"
+  },
+  "file": "6d800547086fb9f6.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=15144417-15386947": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 15144417-15386947/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "242531"
+  },
+  "file": "7dd58dbf171010e1.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=19328806-19757801": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 19328806-19757801/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "428996"
+  },
+  "file": "ae3aa8d0a8e1d1de.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=23265568-23716743": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 23265568-23716743/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "451176"
+  },
+  "file": "0722de057f0989a5.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=27240792-27692380": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 27240792-27692380/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "451589"
+  },
+  "file": "94035d77883f6899.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=18870386-19013970": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 18870386-19013970/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "143585"
+  },
+  "file": "c0842680da734537.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=22789855-22934078": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 22789855-22934078/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "144224"
+  },
+  "file": "c801eb276f5212c4.bin"
+ },
+ "HEAD /country=CA/part-0.parquet -": {
+  "status": 200,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "66168347"
+  },
+  "file": null
+ },
+ "GET /country=CA/part-0.parquet bytes=66037275-66168346": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 66037275-66168346/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "131072"
+  },
+  "file": "b0710457a0409d47.bin"
+ },
+ "GET /country=CA/part-0.parquet bytes=3696078-4157111": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3696078-4157111/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "461034"
+  },
+  "file": "f0301f6c9ad036ef.bin"
+ },
+ "GET /country=CA/part-0.parquet bytes=3033865-3177139": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3033865-3177139/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "143275"
+  },
+  "file": "fad99bdd6ad234ea.bin"
+ },
+ "GET /country=CA/part-0.parquet bytes=4-2065193": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 4-2065193/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "2065190"
+  },
+  "file": "6ba32cea05a41f34.bin"
+ },
+ "GET /country=CA/part-0.parquet bytes=2065194-3033864": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 2065194-3033864/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "968671"
+  },
+  "file": "71c0c61a8daef006.bin"
+ },
+ "GET /country=CA/part-0.parquet bytes=3177140-3228664": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3177140-3228664/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "51525"
+  },
+  "file": "1bc3d330729d6f70.bin"
+ },
+ "GET /country=CA/part-0.parquet bytes=3228665-3257044": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3228665-3257044/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "28380"
+  },
+  "file": "e3ccada40badab98.bin"
+ },
+ "GET /country=CA/part-0.parquet bytes=3257045-3696077": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 3257045-3696077/66168347",
+   "etag": "\"993b0722e346d4b93c8dceb79d945527-8\"",
+   "content-length": "439033"
+  },
+  "file": "c6be2b5cde88cf29.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=145599016-146049594": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 145599016-146049594/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "450579"
+  },
+  "file": "e6cc21e3a30a66a3.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=165399719-165845799": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 165399719-165845799/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "446081"
+  },
+  "file": "a75cd7bfb0415a6d.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=164932019-165076673": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 164932019-165076673/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "144655"
+  },
+  "file": "59f5cd23993a8e74.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=161890344-163956094": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 161890344-163956094/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "2065751"
+  },
+  "file": "5fc09eadda35f8d8.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=163956095-164932018": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 163956095-164932018/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "975924"
+  },
+  "file": "29075bbe01c39c1c.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=165076674-165127521": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 165076674-165127521/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "50848"
+  },
+  "file": "aa4c4f81cb858988.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=165127522-165151636": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 165127522-165151636/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "24115"
+  },
+  "file": "079af97a48a13b03.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=165151637-165399718": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 165151637-165399718/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "248082"
+  },
+  "file": "ad420bc7f1080e8f.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=15822745-17887088": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 15822745-17887088/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "2064344"
+  },
+  "file": "9f45c4a6059c7f69.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=17887089-18870385": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 17887089-18870385/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "983297"
+  },
+  "file": "9c6c9ce0ba2cb4cc.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=19013971-19064053": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 19013971-19064053/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "50083"
+  },
+  "file": "b2eb70cfe756d54b.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=19064054-19094000": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 19064054-19094000/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "29947"
+  },
+  "file": "d89f21ac852b3f77.bin"
+ },
+ "GET /country=US/part-3.parquet bytes=19094001-19328805": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 19094001-19328805/175846987",
+   "etag": "\"d753848849e21c6d667dad3837c922c6-21\"",
+   "content-length": "234805"
+  },
+  "file": "0243322c6f2fe988.bin"
+ },
+ "GET /country=US/part-2.parquet bytes=145128775-145273753": {
+  "status": 206,
+  "headers": {
+   "content-type": "application/octet-stream",
+   "accept-ranges": "bytes",
+   "content-range": "bytes 145128775-145273753/177171614",
+   "etag": "\"c4f1017487ac846ea58e589448079c66-22\"",
+   "content-length": "144979"
+  },
+  "file": "bddd356a4706e01b.bin"
  }
 }

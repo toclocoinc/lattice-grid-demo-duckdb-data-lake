@@ -3,7 +3,7 @@
  "countriesWithRows": [
   "IS"
  ],
- "otherPlace": 0,
+ "otherPlace": 10732,
  "total": 1491,
  "chip": 54,
  "search": 106,
@@ -43,5 +43,30 @@
   "10-11 Austurstræti",
   "101 Bistro",
   "101 Down Town Guesthouse"
- ]
+ ],
+ "dragStart": {
+  "box": {
+   "xmin": -83.6,
+   "xmax": -83.22,
+   "ymin": 42.2,
+   "ymax": 42.45
+  },
+  "restaurants": 327,
+  "countriesWithRows": [
+   "US"
+  ]
+ },
+ "dragEnd": {
+  "box": {
+   "xmin": -83.47872340425138,
+   "xmax": -83.09872340425152,
+   "ymin": 42.17101247107405,
+   "ymax": 42.47885929560445
+  },
+  "restaurants": 564,
+  "countriesWithRows": [
+   "CA",
+   "US"
+  ]
+ }
 }

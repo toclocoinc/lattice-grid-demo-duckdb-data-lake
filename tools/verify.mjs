@@ -9,6 +9,9 @@
  *   - a category chip, which must narrow the count and every row it shows;
  *   - the quick search, a sort, and a group by category and by brand;
  *   - the byte counter: some bytes were fetched, a small share of the dataset;
+ *   - the map drives the window: a real pointer drag on the map changes the match count and, across a
+ *     border, the countries opened; the map cannot be zoomed out to a window wider than a metro area;
+ *     a place chip is a shortcut for a window and a category chip never moves it;
  *   - the map drew the rows the grid holds; the theme switch repaints;
  *   - no console errors, no NaN/undefined text, no watermark.
  *
@@ -18,6 +21,9 @@
  *   node tools/verify.mjs --local [dir] a local build from tools/build-partitioned.mjs (default data/lake)
  *   node tools/verify.mjs --record [dir] the same, and rewrite test/recorded/ and test/expected.json; also
  *                                       checks the copy against the Overture release itself (network)
+ *   node tools/verify.mjs --record --from <cdn url>
+ *                                       the same, with the reads fetched from the copy on the CDN instead of
+ *                                       a local build, and the expected answers asked of the same files
  *   node tools/verify.mjs --shots dir   also write screenshots (--width 390 for a phone)
  *
  * The page's own libraries (DuckDB-Wasm, deck.gl, MapLibre) always come from
@@ -32,7 +38,8 @@ import { dirname, join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './serve.mjs';
-import { CATEGORIES, CITIES } from '../src/places.js';
+import { CATEGORIES, CITIES, MIN_ZOOM, filesFor } from '../src/places.js';
+import { MANIFEST } from '../src/manifest.js';
 
 /* Count distinct colours in a PNG (8-bit RGB/RGBA, non-interlaced): a blank grey box has one or two. */
 function distinctColours(png) {
@@ -67,12 +74,20 @@ const shotIndex = args.indexOf('--shots');
 const shotDir = shotIndex >= 0 ? resolve(args[shotIndex + 1]) : null;
 const dirIndex = Math.max(args.indexOf('--local'), args.indexOf('--record'));
 const LOCAL_DIR = resolve(dirIndex >= 0 && args[dirIndex + 1] && !args[dirIndex + 1].startsWith('--') ? args[dirIndex + 1] : join(root, 'data', 'lake'));
+const fromIndex = args.indexOf('--from');
+const FROM = fromIndex >= 0 ? args[fromIndex + 1] : null;
 const RELEASE = '2026-09-23.1';
 const EXPECTED_FILE = join(root, 'test', 'expected.json');
 
 const TARGET = CITIES.find((c) => c.id === 'reykjavik');
 const CHIP = CATEGORIES.find((c) => c.id === 'restaurant');
 const SEARCH = 'hotel';
+/** West of the Detroit River, a window about 0.4 degrees wide: dragging it east brings Windsor (Canada) in. */
+const DRAG_START = { xmin: -83.60, xmax: -83.22, ymin: 42.20, ymax: 42.45 };
+const DRAG_CATEGORY = CATEGORIES.find((c) => c.id === 'restaurant');
+const inBox = (b) => `lon BETWEEN ${b.xmin} AND ${b.xmax} AND lat BETWEEN ${b.ymin} AND ${b.ymax}`;
+/** Asks the independent DuckDB how many places of the category lie in a box; set by nodeAnswers. */
+let askBox = null;
 
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
@@ -87,6 +102,7 @@ function check(ok, description, detail) {
   if (ok) notes.push(`  ok   ${line}`); else { failures.push(line); notes.push(`  FAIL ${line}`); }
   console.log(notes.at(-1));
 }
+const dragNote = (before, after) => `Detroit window ${before.tile} -> ${after.tile}; ${int(before.n)} -> ${int(after.n)} restaurants; fetched for the moved window ${(after.fetched / 1e6).toFixed(2)} MB`;
 const int = (n) => (n == null ? '—' : Number(n).toLocaleString('en-US'));
 
 async function findChrome() {
@@ -130,14 +146,30 @@ async function nodeAnswers({ againstRelease }) {
   const db = await DuckDBInstance.create(':memory:');
   const conn = await db.connect();
   const b = TARGET.bbox;
-  const glob = join(LOCAL_DIR, 'country=*', '*.parquet').replaceAll("'", "''");
-  const local = `read_parquet('${glob}', hive_partitioning = true, hive_types = {'country': VARCHAR})`;
+  let local;
+  if (FROM) {
+    /* The copy on the CDN, read over HTTPS by Node's DuckDB: every file whose whole-file extent meets one of the windows (the manifest's row groups are not trusted here). */
+    await conn.run('INSTALL httpfs; LOAD httpfs;');
+    const windows = [TARGET.bbox, CITIES.find((c) => c.id === 'paris').bbox, DRAG_START, { ...DRAG_START, xmin: DRAG_START.xmin + 0.5, xmax: DRAG_START.xmax + 0.5 }];
+    const meetsFile = (f, w) => f.xmin <= w.xmax && f.xmax >= w.xmin && f.ymin <= w.ymax && f.ymax >= w.ymin;
+    const urls = MANIFEST.files.filter((f) => windows.some((w) => meetsFile(f, w))).map((f) => `'${new URL(f.file, FROM).href}'`);
+    local = `read_parquet([${urls.join(', ')}], hive_partitioning = true, hive_types = {'country': VARCHAR})`;
+  } else {
+    const glob = join(LOCAL_DIR, 'country=*', '*.parquet').replaceAll("'", "''");
+    local = `read_parquet('${glob}', hive_partitioning = true, hive_types = {'country': VARCHAR})`;
+  }
+  askBox = async (box, category) => {
+    const cats = category.values.map((v) => `'${v}'`).join(', ');
+    const n = Number((await conn.runAndReadAll(`SELECT count(*) AS n FROM ${local} WHERE ${inBox(box)} AND category IN (${cats})`)).getRowObjectsJson()[0].n);
+    const holding = (await conn.runAndReadAll(`SELECT DISTINCT country FROM ${local} WHERE ${inBox(box)} ORDER BY 1`)).getRowObjectsJson().map((r) => r.country);
+    return { box, restaurants: n, countriesWithRows: holding };
+  };
   const answers = await answersOver(conn, local);
   const holding = (await conn.runAndReadAll(`
     SELECT DISTINCT country FROM ${local} WHERE lon BETWEEN ${b.xmin} AND ${b.xmax} AND lat BETWEEN ${b.ymin} AND ${b.ymax} ORDER BY 1`)).getRowObjectsJson().map((r) => r.country);
   const other = CITIES.find((c) => c.id === 'paris').bbox;
   const otherPlace = Number((await conn.runAndReadAll(`SELECT count(*) AS n FROM ${local} WHERE lon BETWEEN ${other.xmin} AND ${other.xmax} AND lat BETWEEN ${other.ymin} AND ${other.ymax}`)).getRowObjectsJson()[0].n);
-  const result = { release: RELEASE, countriesWithRows: holding, otherPlace, ...answers };
+  const result = { release: RELEASE, countriesWithRows: holding, otherPlace, ...answers, dragStart: await askBox(DRAG_START, DRAG_CATEGORY) };
   if (againstRelease) {
     /* The copy must hold exactly what the release holds for this window. */
     await conn.run("INSTALL httpfs; LOAD httpfs; SET s3_region = 'us-west-2';");
@@ -167,11 +199,11 @@ async function run() {
   const chromePath = await findChrome();
 
   const record = flag('--record');
-  const mode = record ? 'record' : (flag('--local') ? 'local' : 'replay');
+  const mode = record ? 'record' : (flag('--local') || FROM ? 'local' : 'replay');
   console.log(`Data: ${mode === 'replay' ? 'the recording in test/recorded/ (no data needed)' : `${LOCAL_DIR}${record ? ', recording to test/recorded/' : ''}`}`);
 
   /* The page always reads through /lake/ (?data=local); the server answers from the build or the recording. */
-  served = await startServer(0, { lake: mode, dir: LOCAL_DIR });
+  served = await startServer(0, { lake: mode, dir: LOCAL_DIR, from: FROM });
   if (mode === 'replay' && !served.hasRecording()) throw new Error('There is no recording. Run `node tools/verify.mjs --record` once with a local build.');
   const origin = `http://127.0.0.1:${served.port}`;
   const query = new URLSearchParams({ city: TARGET.id, theme: 'light', data: 'local' });
@@ -343,6 +375,25 @@ async function run() {
   check(colours >= 12, 'the map canvas shows a drawn basemap and points, not a blank box', `${colours} distinct colours`);
 
   /* -------------------------------------------------------------- */
+  /* The lake guard: the map cannot be zoomed out to the whole copy  */
+  /* -------------------------------------------------------------- */
+  const windowNow = () => evaluate('JSON.stringify(window.__lakeDemo.window)').then(JSON.parse);
+  await evaluate('(window.__lakeDemo.map.getMap().setZoom(1), 1)');
+  await waitFor(`window.__lakeDemo.window.xmax - window.__lakeDemo.window.xmin > 0.5 && window.__lakeDemo.matchCount != null`, 120000, 'the widest window the map allows');
+  await sleep(1500);
+  const widest = await evaluate(`({ zoom: window.__lakeDemo.map.getMap().getZoom(), minZoom: window.__lakeDemo.map.getMap().getMinZoom(), w: window.__lakeDemo.window, files: window.__lakeDemo.files.length, bytes: window.__lakeDemo.cityBytes, total: window.__lakeDemo.manifest.totalBytes, hint: document.querySelector('.window-hint')?.textContent })`);
+  check(widest.minZoom === MIN_ZOOM && widest.zoom >= MIN_ZOOM, `Zooming all the way out stops at zoom ${MIN_ZOOM}`, `zoom ${widest.zoom.toFixed(2)}`);
+  check(widest.w.xmax - widest.w.xmin < 2 && widest.bytes < widest.total / 50, 'the widest window is a metro area and the lake is not read wholesale', `${(widest.w.xmax - widest.w.xmin).toFixed(2)}° wide, ${(widest.bytes / 1e6).toFixed(1)} MB of ${(widest.total / 1e9).toFixed(2)} GB`);
+  check(widest.hint === 'Pan anywhere; the lake answers for the window you see.', 'the page says so in one sentence', widest.hint);
+  /* What a place chip does, from the page's own code path: the box becomes the window, the categories stay. */
+  const goTo = (box, categories = []) => evaluate(`(() => { const b = ${JSON.stringify(box)}; const values = ${JSON.stringify(categories)};
+    window.__lakeDemo.grid.filters.set({ op: 'and', conditions: [{ col: 'lon', op: 'between', value: [b.xmin, b.xmax] }, { col: 'lat', op: 'between', value: [b.ymin, b.ymax] },
+      ...(values.length ? [{ col: 'category', op: 'in', value: values }] : [])] }); return 1; })()`);
+  await goTo(TARGET.bbox);
+  await waitFor(`window.__lakeDemo.window.xmax === ${TARGET.bbox.xmax} && window.__lakeDemo.matchCount === ${expected.total}`, 120000, 'the first window again');
+  await sleep(1500);
+
+  /* -------------------------------------------------------------- */
   /* Category chip                                                   */
   /* -------------------------------------------------------------- */
   const beforeBytes = cost.bytes;
@@ -437,11 +488,74 @@ async function run() {
   /* A place with no partition in this copy (the small test build) opens nothing and says so; with a full copy it reads. */
   const other = CITIES.find((c) => c.id === 'paris');
   await click('[data-city]', other.label);
-  await waitFor(`window.__lakeDemo.city.id === 'paris' && window.__lakeDemo.matchCount != null`, 120000, 'the second place');
+  await waitFor(`window.__lakeDemo.window.xmin === ${other.bbox.xmin} && window.__lakeDemo.matchCount === ${expected.otherPlace}`, 120000, 'the second place').catch(() => {});
   await sleep(1500);
   const second = await evaluate(`({ n: window.__lakeDemo.matchCount, tile: document.querySelector('[data-stat=partitions] [data-value]').textContent })`);
   check(second.n === expected.otherPlace, `${other.label}: the count is the copy's (${int(expected.otherPlace)})`, `${int(second.n)}; countries opened: ${second.tile}`);
   await shoot('09-other-place');
+  const parisState = await evaluate(`(() => { const d = window.__lakeDemo; const m = d.map.getMap();
+    return { win: d.window, centre: m.getCenter(), pressed: [...document.querySelectorAll('[data-city][aria-pressed=true]')].map((b) => b.dataset.city) }; })()`);
+  check(Math.abs(parisState.win.xmin - other.bbox.xmin) < 1e-9 && Math.abs(parisState.win.ymax - other.bbox.ymax) < 1e-9, `${other.label}: the chip wrote its box as the grid's window`, JSON.stringify(parisState.win));
+  check(parisState.pressed.join() === 'paris' && parisState.centre.lng > other.bbox.xmin && parisState.centre.lng < other.bbox.xmax && parisState.centre.lat > other.bbox.ymin && parisState.centre.lat < other.bbox.ymax,
+    'the chip shows pressed and the map flew there', `${parisState.pressed.join()} at ${parisState.centre.lng.toFixed(3)}, ${parisState.centre.lat.toFixed(3)}`);
+  await click('[data-category]', CHIP.label);
+  await waitFor(`window.__lakeDemo.matchCount != ${second.n}`, 120000, 'the category count in Paris');
+  await sleep(1500);
+  const afterChip = await evaluate(`({ win: window.__lakeDemo.window, centre: window.__lakeDemo.map.getMap().getCenter(), pressed: document.querySelector('[data-city=paris]').getAttribute('aria-pressed') })`);
+  check(JSON.stringify(afterChip.win) === JSON.stringify(parisState.win) && Math.abs(afterChip.centre.lng - parisState.centre.lng) < 1e-9 && afterChip.pressed === 'true',
+    'a category chip never moves the map or changes the window', JSON.stringify(afterChip.win));
+  await click('[data-clear]');
+  await waitFor(`window.__lakeDemo.matchCount === ${expected.otherPlace}`, 120000, 'the cleared category in Paris');
+
+  /* -------------------------------------------------------------- */
+  /* Drag the map across a border                                    */
+  /* -------------------------------------------------------------- */
+  await click('[data-category]', DRAG_CATEGORY.label);
+  await goTo(DRAG_START, DRAG_CATEGORY.values);
+  await waitFor(`window.__lakeDemo.window.xmax === ${DRAG_START.xmax} && window.__lakeDemo.matchCount != null`, 120000, 'the window west of the river');
+  await waitFor(`!document.querySelector('.map-pane .panel-loading:not([hidden])')`, 120000, 'the map');
+  await sleep(4000);
+  const before = await evaluate(`({ n: window.__lakeDemo.matchCount, opened: window.__lakeDemo.files.map((f) => f.country), tile: document.querySelector('[data-stat=partitions] [data-value]').textContent, swaps: window.__lakeDemo.swaps, win: window.__lakeDemo.window })`);
+  check(before.n === expected.dragStart.restaurants, 'Detroit west of the river: the restaurant count is the lake\'s', `${int(before.n)} vs ${int(expected.dragStart.restaurants)}`);
+  check(!before.opened.includes('CA'), 'Canada is not opened yet', before.tile);
+  await shoot('10-before-drag');
+
+  /* A real pointer drag, kept inside the map pane. */
+  const pane = await evaluate('(() => { const e = document.querySelector(".map-host"); e.scrollIntoView({ block: "center" }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()');
+  const dx = -Math.min(180, Math.floor((await evaluate('document.querySelector(".map-host").getBoundingClientRect().width')) / 3));
+  await evaluate('(() => { window.__lakeDemo.sql.length = 0; return 1; })()');
+  const bytesBefore = (await evaluate('window.__lakeDemo.meter.bytes'));
+  await call('Input.dispatchMouseEvent', { type: 'mouseMoved', x: pane.x, y: pane.y });
+  await call('Input.dispatchMouseEvent', { type: 'mousePressed', x: pane.x, y: pane.y, button: 'left', buttons: 1, clickCount: 1 });
+  for (let i = 1; i <= 12; i += 1) { await call('Input.dispatchMouseEvent', { type: 'mouseMoved', x: pane.x + (dx * i) / 12, y: pane.y, buttons: 1 }); await sleep(30); }
+  /* A pause before the release so the map keeps no inertia: the drag is exactly as long as it looks, the same every run. */
+  await sleep(400);
+  await call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pane.x + dx, y: pane.y, button: 'left', clickCount: 1 });
+  await waitFor(`window.__lakeDemo.window.xmin > ${before.win.xmin} + 0.01 && window.__lakeDemo.matchCount != null && window.__lakeDemo.swaps > ${before.swaps}`, 120000, 'the dragged window');
+  await sleep(4000);
+  const after = await evaluate(`({ n: window.__lakeDemo.matchCount, opened: window.__lakeDemo.files.map((f) => f.country), tile: document.querySelector('[data-stat=partitions] [data-value]').textContent, win: window.__lakeDemo.window,
+    chip: document.querySelector('[data-category=restaurant]').getAttribute('aria-pressed'), fetched: window.__lakeDemo.cityBytes, queries: window.__lakeDemo.sql.map((q) => q.sql.replace(/\\s+/g, ' ').slice(0, 40)),
+    sqlShown: document.querySelector('[data-query-list]').textContent, statMatch: document.querySelector('[data-stat=matches] [data-value]').textContent, pressed: document.querySelectorAll('[data-city][aria-pressed=true]').length,
+    rows: (() => { const g = window.__lakeDemo.grid; const out = []; for (let i = 0; i < Math.min(5, g.rows.count()); i += 1) { const r = g.rows.at ? g.rows.at(i) : g.rows.get(i); out.push(r && r.data ? r.data : r); } return out; })() })`);
+  if (askBox) {
+    expected.dragEnd = await askBox(after.win, DRAG_CATEGORY);
+    if (record) await writeFile(EXPECTED_FILE, `${JSON.stringify(expected, null, 1)}\n`);
+  }
+  const end = expected.dragEnd;
+  check(Math.abs(end.box.xmin - after.win.xmin) < 1e-6 && Math.abs(end.box.ymax - after.win.ymax) < 1e-6, 'the drag ended on the window the recording was made for', JSON.stringify(after.win));
+  check(after.n !== before.n && after.n === end.restaurants, 'the drag changed the match count, and it is the lake\'s for the window the map shows', `${int(before.n)} -> ${int(after.n)} vs ${int(end.restaurants)}`);
+  check(after.statMatch === int(after.n), 'the match tile shows it', after.statMatch);
+  check(after.opened.includes('CA') && end.countriesWithRows.includes('CA') && after.tile !== before.tile, 'crossing the river opened Canada: the countries tile moved', `${before.tile} -> ${after.tile}`);
+  check(after.chip === 'true' && after.pressed === 0, 'the category stayed on and no place chip is pressed any more', `pressed=${after.chip}`);
+  check(after.rows.length > 0 && after.rows.every((r) => DRAG_CATEGORY.values.includes(r.category) && r.lon >= after.win.xmin && r.lon <= after.win.xmax && r.lat >= after.win.ymin && r.lat <= after.win.ymax),
+    'every row shown is a restaurant inside the moved window', after.rows.slice(0, 2).map((r) => r.name).join(' | '));
+  if (!after.sqlShown.includes(String(after.win.xmin))) console.log(after.sqlShown.slice(0, 1200));
+  check(after.sqlShown.includes(String(after.win.xmin)), '"What DuckDB ran" shows the moved window\'s SQL', after.queries.join(' ; '));
+  const dataQueries = after.queries.filter((q) => /^SELECT "id"/.test(q));
+  check(dataQueries.length === 1, 'one drag cost one page query', `${after.queries.length} statements: ${after.queries.join(' ; ')}`);
+  console.log(`DRAG ${dragNote(before, after, bytesBefore)}`);
+  await shoot('11-after-drag');
+  await click('[data-clear]');
 
   /* -------------------------------------------------------------- */
   /* Hygiene                                                         */

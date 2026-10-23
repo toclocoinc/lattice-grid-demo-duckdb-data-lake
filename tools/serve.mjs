@@ -9,6 +9,9 @@
  *   record   local, and every response is also written to test/recorded/, keyed
  *            by path and Range, with the directory's manifest. This is how the
  *            CI fixture is made.
+ *            With `--from=<base url>` (the CDN) there is no local directory: the
+ *            reads are fetched from there, Range and all, and recorded, with
+ *            the page's own src/manifest.js. How the full copy is recorded.
  *   replay   answers only from test/recorded/, with no data at all. A request
  *            that was not recorded is a 404 and is listed in `/__lake`, so a
  *            change that reads different bytes shows up as a failed check.
@@ -19,7 +22,7 @@
  *
  * `/__lake` serves the tally of what the page asked of `/lake/`, as JSON.
  *
- *   node tools/serve.mjs [port] [--lake=local|record|replay] [--dir=data/lake]
+ *   node tools/serve.mjs [port] [--lake=local|record|replay] [--dir=data/lake] [--from=https://cdn/.../]
  */
 
 import { createServer } from 'node:http';
@@ -80,7 +83,17 @@ async function readLocal(dir, path, range, headOnly) {
   } finally { await handle.close(); }
 }
 
-export async function startServer(port = 0, { lake = 'replay', dir = DEFAULT_DIR } = {}) {
+/** The same answer from the CDN: whole, or the Range asked for. */
+async function readUpstream(base, path, range, headOnly) {
+  const upstream = await fetch(new URL(`.${path}`, base), { method: headOnly ? 'HEAD' : 'GET', headers: range ? { range } : {} });
+  const body = headOnly ? Buffer.alloc(0) : Buffer.from(await upstream.arrayBuffer());
+  const headers = { 'content-type': 'application/octet-stream', 'accept-ranges': 'bytes' };
+  for (const name of ['content-range', 'etag']) if (upstream.headers.get(name)) headers[name] = upstream.headers.get(name);
+  headers['content-length'] = headOnly ? (upstream.headers.get('content-length') ?? '0') : String(body.length);
+  return { status: upstream.status, headers, body };
+}
+
+export async function startServer(port = 0, { lake = 'replay', dir = DEFAULT_DIR, from = null } = {}) {
   dir = resolve(dir);
   /** What the page asked of /lake/: one entry per request. */
   let log = [];
@@ -92,7 +105,7 @@ export async function startServer(port = 0, { lake = 'replay', dir = DEFAULT_DIR
     index = {};
     await rm(RECORDED, { recursive: true, force: true });
     await mkdir(RECORDED, { recursive: true });
-    await copyFile(join(dir, 'manifest.js'), join(RECORDED, 'manifest.js'));
+    await copyFile(from ? join(root, 'src', 'manifest.js') : join(dir, 'manifest.js'), join(RECORDED, 'manifest.js'));
   }
 
   async function serveLake(request, response, path) {
@@ -113,7 +126,7 @@ export async function startServer(port = 0, { lake = 'replay', dir = DEFAULT_DIR
       return;
     }
 
-    const found = await readLocal(dir, path, range, request.method === 'HEAD');
+    const found = from ? await readUpstream(from, path, range, request.method === 'HEAD') : await readLocal(dir, path, range, request.method === 'HEAD');
     if (!found) {
       note(404, 0, false);
       response.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
@@ -144,7 +157,7 @@ export async function startServer(port = 0, { lake = 'replay', dir = DEFAULT_DIR
         return;
       }
       if (url.split('?')[0] === '/src/manifest.js') {
-        const own = lake === 'replay' ? join(RECORDED, 'manifest.js') : join(dir, 'manifest.js');
+        const own = lake === 'replay' ? join(RECORDED, 'manifest.js') : (from ? join(root, 'src', 'manifest.js') : join(dir, 'manifest.js'));
         const found = await stat(own).then(() => own, () => null);
         if (found) {
           response.writeHead(200, { 'content-type': TYPES['.js'], 'cache-control': 'no-store' });
@@ -186,7 +199,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   const flag = (name) => (args.find((a) => a.startsWith(`--${name}=`)) || '').split('=')[1];
   const mode = flag('lake') || 'local';
   const wanted = Number(args.find((a) => /^\d+$/.test(a)) || 0);
-  const { port } = await startServer(wanted, { lake: mode, dir: flag('dir') || DEFAULT_DIR });
+  const { port } = await startServer(wanted, { lake: mode, dir: flag('dir') || DEFAULT_DIR, from: flag('from') || null });
   process.stdout.write(`Serving the demo at http://localhost:${port}/\n`);
   process.stdout.write(`The copy on the CDN:  http://localhost:${port}/\n`);
   process.stdout.write(`Through /lake/ (${mode}): http://localhost:${port}/?data=local\n`);

@@ -11,7 +11,7 @@ import { MANIFEST } from './manifest.js';
 import { DATA_BASE } from './config.js';
 import { recordingConnection } from './duckdb.js';
 import { megabytes, slot } from './loading.js';
-import { CATEGORIES, CITIES, COLUMNS, GRID_FIELDS, filesFor, filterTree, fmt, fromFor, groupsFor, shortenSource } from './places.js';
+import { CATEGORIES, CITIES, COLUMNS, GRID_FIELDS, MIN_ZOOM, boxOf, filesFor, filterTree, fmt, fromFor, groupsFor, sameBox, shortenSource } from './places.js';
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -31,6 +31,9 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     source: null,
     adapter: null,
     city: CITIES.find((c) => c.id === params.get('city')) ?? CITIES[0],
+    window: null,
+    fileKey: '',
+    swaps: 0,
     categories: new Set(),
     groupBy: null,
     matchCount: null,
@@ -63,7 +66,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
   header.append(el('p', 'lede',
     `Overture Maps publishes ${fmt.int(MANIFEST.totalRows)} places of interest. Here they sit as ${fmt.bytes(MANIFEST.totalBytes)} of Parquet, one folder per country. `
     + 'DuckDB, running in your browser, opens only the countries your map window touches and reads only the byte ranges '
-    + 'your filters need. Pick a place and a category and watch how little of the lake it takes to answer.'));
+    + 'your filters need. Pan the map, pick a place or a category, and watch how little of the lake it takes to answer.'));
   root.append(header);
   root.append(status.el);
 
@@ -75,6 +78,8 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
   stats.setAttribute('aria-label', 'What the query cost');
   const statsSlot = slot(stats, 'Waiting for the first answer, then the cost of the query');
   root.append(statsSlot.el);
+
+  root.append(el('p', 'window-hint', 'Pan anywhere; the lake answers for the window you see.'));
 
   const split = el('div', 'split');
   const gridPane = el('section', 'pane grid-pane');
@@ -202,7 +207,7 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     stats.append(box);
     return { box, value, note: noteBox };
   };
-  const matchTile = tile('matches', 'Places match', 'inside the chosen window');
+  const matchTile = tile('matches', 'Places match', 'inside the map’s window');
   const partitionTile = tile('partitions', 'Countries opened', ' ');
   const fetchedTile = tile('fetched', 'Fetched from the lake');
   const totalTile = tile('total', 'The whole copy', `${fmt.int(MANIFEST.totalRows)} places in ${MANIFEST.files.length} files`);
@@ -277,11 +282,11 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     const total = built.files.reduce((n, f) => n + f.bytes, 0);
     const countries = new Set(built.files.map((f) => f.country)).size;
     const line = () => {
-      if (total === 0) return [`Nothing in the lake sits inside ${built.city.label}’s window`, null];
+      if (total === 0) return [`Nothing in the lake sits inside this window`, null];
       /* Only the data files count here; the Parquet reader the engine fetches on first use is said separately. */
       const read = meter.log.filter((e) => /\.parquet$/.test(e.url)).reduce((n, e) => n + (e.status >= 200 && e.status < 300 ? e.bytes : 0), 0);
       if (!read && meter.log.length) return ['Fetching the engine’s Parquet reader (about 3 MB, first visit only)', null];
-      return [`Reading the manifest and the ${countries} country partition${countries === 1 ? '' : 's'} ${built.city.label} opens (${megabytes(read)} of up to ${megabytes(total)})`, Math.min(1, read / total)];
+      return [`Reading the manifest and the ${countries} country partition${countries === 1 ? '' : 's'} this window opens (${megabytes(read)} of up to ${megabytes(total)})`, Math.min(1, read / total)];
     };
     loadingStatus?.();
     status.show();
@@ -295,30 +300,13 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     for (const covered of [statsSlot, gridSlot, mapSlot]) covered.hide();
   }
 
-  function mountGrid() {
-    built.map?.destroy?.();
-    built.map = null;
-    built.grid?.destroy?.();
-    gridHost.textContent = '';
-    mapHost.textContent = '';
-    built.files = filesFor(built.city.bbox);
-    built.groups = groupsFor(built.files, built.city.bbox);
-    built.matchCount = null;
-    built.lastQueryMs = null;
-    meter.reset();
-    built.cityBytes = 0;
-    renderCost();
-    showLoading();
-
-    const { adapter, source } = makeSource(built.files);
-    built.adapter = adapter;
-    built.source = source;
-
+  /** Wrap the adapter so the page learns when a query is answered; a source the page has since replaced is ignored. */
+  function instrument(adapter, source) {
     const inner = adapter.execute.bind(adapter);
     adapter.execute = async (query, request) => {
       let result;
       try { result = await inner(query, request); } catch (error) {
-        if (source === built.source) { status.set('The lake could not be read. Try another place.'); gridSlot.show('The lake could not be read'); }
+        if (source === built.source) { status.set('The lake could not be read. Pan somewhere else.'); gridSlot.show('The lake could not be read'); }
         throw error;
       }
       if (source !== built.source) return result;
@@ -328,6 +316,72 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
       renderCost();
       return result;
     };
+  }
+
+  const keyOfFiles = (files) => files.map((f) => f.file).join('|');
+
+  /** The window changed: the files it opens and the row groups it can touch are worked out again, and the byte count starts over. */
+  function setWindow(box) {
+    built.window = box;
+    built.files = filesFor(box);
+    built.groups = groupsFor(built.files, box);
+    meter.reset();
+    built.cityBytes = 0;
+    built.lastQueryMs = null;
+    renderCost();
+    renderChips();
+  }
+
+  /** Only when the window opens a different set of partition files does the grid get a new source; its sort, grouping, search and filters stay. */
+  function followWindow() {
+    const grid = built.grid;
+    if (!grid) return;
+    const box = boxOf(grid.filters.get());
+    if (!box || sameBox(box, built.window)) return;
+    setWindow(box);
+    const key = keyOfFiles(built.files);
+    if (key === built.fileKey) return;
+    built.fileKey = key;
+    const { adapter, source } = makeSource(built.files);
+    built.adapter = adapter;
+    built.source = source;
+    instrument(adapter, source);
+    built.swaps += 1;
+    grid.set('source', source);
+  }
+
+  /** Zoom at which a box fills the map pane, never closer than the lake guard allows out. */
+  function zoomFor(box, width, height) {
+    const lonSpan = (box.xmax - box.xmin) / 360;
+    const mercY = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+    const latSpan = (mercY(box.ymax) - mercY(box.ymin)) / (2 * Math.PI);
+    const zoom = Math.log2(Math.min(width / (512 * lonSpan), height / (512 * latSpan)));
+    return Math.min(Math.max(zoom, MIN_ZOOM), 16);
+  }
+
+  function mountGrid() {
+    built.map?.destroy?.();
+    built.map = null;
+    built.grid?.destroy?.();
+    gridHost.textContent = '';
+    mapHost.textContent = '';
+    const box = built.window ?? built.city.bbox;
+    built.files = filesFor(box);
+    built.fileKey = keyOfFiles(built.files);
+    built.window = box;
+    built.groups = groupsFor(built.files, box);
+    built.matchCount = null;
+    built.lastQueryMs = null;
+    meter.reset();
+    built.cityBytes = 0;
+    renderCost();
+    renderChips();
+    showLoading();
+
+    const { adapter, source } = makeSource(built.files);
+    built.adapter = adapter;
+    built.source = source;
+    instrument(adapter, source);
 
     const grid = LG.createGrid(gridHost, {
       rowKey: 'id',
@@ -339,12 +393,16 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
       groupDefaultExpanded: false,
     });
     built.grid = grid;
-    grid.filters.set(filterTree(built.city, built.categories));
+    grid.filters.set(filterTree(box, built.categories));
     if (built.groupBy) { grid.columns.group([built.groupBy]); void refreshCount(); }
     if (search.value) grid.filters.quick(search.value);
+    /* Before the grid queries for a new window, the source is changed if the window opens other files. */
+    grid.on('beforeFilter', () => { queueMicrotask(followWindow); });
+    grid.on('filter:changed', () => { followWindow(); });
 
     if (createMapView && window.deck && window.maplibregl) {
       try {
+        const rect = mapHost.getBoundingClientRect();
         built.map = createMapView(grid, {
           container: mapHost,
           geometry: { lat: 'lat', lng: 'lon' },
@@ -353,7 +411,14 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
           color: { field: 'category' },
           radius: 5,
           radiusUnits: 'pixels',
+          view: {
+            center: [(box.xmin + box.xmax) / 2, (box.ymin + box.ymax) / 2],
+            zoom: zoomFor(box, rect.width || 600, rect.height || 500),
+          },
+          viewportFilter: true,
         });
+        /* A demo decision, not a workaround: a window is never wider than a metro area, so the whole copy cannot be reached by zooming out. */
+        built.map.getMap?.()?.setMinZoom(MIN_ZOOM);
       } catch (error) {
         console.error('[lake demo] map', error);
         mapHost.append(el('p', 'map-note', `The map could not be drawn: ${error.message}`));
@@ -366,7 +431,8 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
 
   function renderChips() {
     for (const [id, button] of cityButtons) {
-      const on = id === built.city.id;
+      const city = CITIES.find((c) => c.id === id);
+      const on = sameBox(built.window, city.bbox, 0.01);
       button.classList.toggle('on', on);
       button.setAttribute('aria-pressed', String(on));
     }
@@ -377,26 +443,30 @@ export function buildApp({ root, LG, createMapView, connection, meter, duckdbVer
     }
   }
 
+  /** A place is a shortcut: its box becomes the grid's window, the map flies there and owns the window from then on. */
   async function chooseCity(city) {
-    if (city.id === built.city.id && built.grid) return;
     built.city = city;
-    renderChips();
-    mountGrid();
+    built.grid?.filters.set(filterTree(city.bbox, built.categories));
+    if (!built.grid) mountGrid();
   }
+
+  /** The window the grid holds right now: the map's, or the box a place chip wrote. */
+  const currentBox = () => boxOf(built.grid?.filters.get()) ?? built.window;
 
   /** A grouped grid reports its group count, not the match count, so the match is asked for directly. */
   async function refreshCount() {
     const source = built.source;
-    const filters = filterTree(built.city, built.categories);
+    const filters = built.grid?.filters.get() ?? filterTree(currentBox(), built.categories);
     try {
       const n = await source.countMatching({ filters });
       if (source === built.source) { built.matchCount = n; renderCost(); }
     } catch (error) { console.error('[lake demo] count', error); }
   }
 
+  /** The category chips change the categories only: the window is read back from the grid, never from a place. */
   function applyFilters() {
     renderChips();
-    built.grid?.filters.set(filterTree(built.city, built.categories));
+    built.grid?.filters.set(filterTree(currentBox(), built.categories));
     if (built.groupBy) void refreshCount();
   }
 

@@ -77,19 +77,50 @@ export const CATEGORIES = [
   { id: 'finance', label: 'Finance', values: ['financial_service', 'bank_credit_union', 'atm'] },
 ];
 
-/** The window and category chips as one filter tree for the grid. */
-export function filterTree(city, categoryIds) {
-  const { bbox } = city;
+/** The window and category chips as one filter tree for the grid. `bbox` is the grid's current window, never a remembered one. */
+export function filterTree(bbox, categoryIds) {
   const conditions = [
-    { col: 'lon', op: 'gte', value: bbox.xmin },
-    { col: 'lon', op: 'lte', value: bbox.xmax },
-    { col: 'lat', op: 'gte', value: bbox.ymin },
-    { col: 'lat', op: 'lte', value: bbox.ymax },
+    { col: 'lon', op: 'between', value: [bbox.xmin, bbox.xmax] },
+    { col: 'lat', op: 'between', value: [bbox.ymin, bbox.ymax] },
   ];
   const values = CATEGORIES.filter((c) => categoryIds.has(c.id)).flatMap((c) => c.values);
   if (values.length) conditions.push({ col: 'category', op: 'in', value: values });
   return { op: 'and', conditions };
 }
+
+/**
+ * The window a filter tree holds: the `lon` and `lat` ranges it carries, or
+ * null when it has no complete box. The map's viewport condition is a `between`
+ * pair on these columns; `gte`/`lte` pairs are read too.
+ */
+export function boxOf(tree) {
+  const range = { lon: [-Infinity, Infinity], lat: [-Infinity, Infinity] };
+  const seen = { lon: false, lat: false };
+  const walk = (node) => {
+    if (!node) return;
+    if (Array.isArray(node.conditions)) { node.conditions.forEach(walk); return; }
+    const r = range[node.col];
+    if (!r) return;
+    if (node.op === 'between') {
+      const [lo, hi] = Array.isArray(node.value) ? node.value : [node.value, node.value2];
+      r[0] = Math.max(r[0], Number(lo)); r[1] = Math.min(r[1], Number(hi)); seen[node.col] = true;
+    }
+    else if (node.op === 'gte') { r[0] = Math.max(r[0], Number(node.value)); seen[node.col] = true; }
+    else if (node.op === 'lte') { r[1] = Math.min(r[1], Number(node.value)); seen[node.col] = true; }
+  };
+  walk(tree);
+  if (!seen.lon || !seen.lat || !range.lon.every(Number.isFinite) || !range.lat.every(Number.isFinite)) return null;
+  return { xmin: range.lon[0], xmax: range.lon[1], ymin: range.lat[0], ymax: range.lat[1] };
+}
+
+/** Whether two windows are the same box, within `slack` of the first one's size (the map writes the box it fitted, to a few decimals). */
+export const sameBox = (a, b, slack = 1e-9) => !!a && !!b && [['xmin', 'xmax'], ['ymin', 'ymax']].every(([lo, hi]) => {
+  const tol = Math.max((b[hi] - b[lo]) * slack, 1e-9);
+  return Math.abs(a[lo] - b[lo]) <= tol && Math.abs(a[hi] - b[hi]) <= tol;
+});
+
+/** The closest the map may zoom out: a window never wider than a metro area, so the lake is never asked for a continent. */
+export const MIN_ZOOM = 9;
 
 export const COLUMNS = [
   { field: 'name', title: 'Name', filter: { type: 'text' }, layout: { width: 220, pin: 'start' }, allowGroup: false },

@@ -131,6 +131,7 @@ body {
 
 /* ------------------------------------------------------- grid + map */
 
+.window-hint { margin: 0; font-size: 13px; color: var(--ink-2); }
 .split { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 14px; }
 .pane { border: 1px solid var(--rule); border-radius: 9px; overflow: hidden; height: 620px; min-width: 0; background: var(--surface); }
 .grid-host, .map-host { height: 100%; width: 100%; }
