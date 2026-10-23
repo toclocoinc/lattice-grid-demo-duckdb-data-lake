@@ -41,5 +41,7 @@ largest file when it finishes.
 `node tools/verify.mjs --local [dir]` runs the page against a local build (via `tools/serve.mjs`,
 `?data=local`) and checks every figure against a second DuckDB in Node. `--record` does the same,
 also checks the copy against the Overture release itself, and rewrites `test/recorded/` (the range
-responses for one small window of the 5-country build, about 1 MB, with the manifest they match)
+responses for the windows it visits, with the manifest they match)
 and `test/expected.json`. Plain `node tools/verify.mjs` replays the recording, with no data.
+
+`node tools/verify.mjs --record --from https://data.latticegrid.dev/duckdb/lattice-grid-demo-duckdb-data-lake/` records from the copy on the CDN instead of a local build (the expected answers are asked of the same files with Node's DuckDB over HTTPS); `--local --from <url>` checks against it without writing the recording. The drag case is recorded at 1440 px; other widths are checked for what they can be and replay the same reads.
