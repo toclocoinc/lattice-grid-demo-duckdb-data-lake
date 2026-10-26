@@ -555,7 +555,11 @@ async function run() {
   if (!after.sqlShown.includes(String(after.win.xmin))) console.log(after.sqlShown.slice(0, 1200));
   check(after.sqlShown.includes(String(after.win.xmin)), '"What DuckDB ran" shows the moved window\'s SQL', after.queries.join(' ; '));
   const dataQueries = after.queries.filter((q) => /^SELECT "id"/.test(q));
-  check(dataQueries.length === 1, 'one drag cost one page query', `${after.queries.length} statements: ${after.queries.join(' ; ')}`);
+  check(dataQueries.length >= 1 && dataQueries.length <= 2, 'one drag cost one page query for the grid, plus at most the map\'s own window query', `${after.queries.length} statements: ${after.queries.join(' ; ')}`);
+  /* The map draws the window, not the grid's page (BACKLOG-0005528): every matching place up to the map's cap, or the density form over it. */
+  const prov = await evaluate('window.__lakeDemo.map.provenance()');
+  check(prov && (prov.binned || prov.drawn >= Math.min(after.n, prov.cap)), 'the map draws every matching place in the moved window up to its cap, or the density form',
+    `drawn ${prov && prov.drawn} of ${int(after.n)} matched, cap ${prov && prov.cap}, computed ${prov && prov.computed}, binned ${prov && prov.binned}`);
   console.log(`DRAG ${dragNote(before, after, bytesBefore)}`);
   await shoot('11-after-drag');
   await click('[data-clear]');
